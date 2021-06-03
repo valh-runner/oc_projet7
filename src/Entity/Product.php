@@ -2,8 +2,9 @@
 
 namespace App\Entity;
 
-use App\Repository\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ProductRepository;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=ProductRepository::class)
@@ -14,71 +15,85 @@ class Product
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"product:index", "product:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"product:index", "product:read"})
      */
     private $model;
 
     /**
      * @ORM\Column(type="float")
+     * @Groups("product:read")
      */
     private $htPrice;
 
     /**
      * @ORM\Column(type="string", length=4)
+     * @Groups("product:read")
      */
     private $releaseYear;
 
     /**
      * @ORM\Column(type="smallint")
+     * @Groups("product:read")
      */
     private $weight;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("product:read")
      */
     private $plateform;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("product:read")
      */
     private $color;
 
     /**
      * @ORM\Column(type="float")
+     * @Groups("product:read")
      */
     private $screenSize;
 
     /**
      * @ORM\Column(type="smallint")
+     * @Groups("product:read")
      */
     private $storageSize;
 
     /**
      * @ORM\Column(type="smallint")
+     * @Groups("product:read")
      */
     private $ram;
 
     /**
      * @ORM\Column(type="smallint")
+     * @Groups("product:read")
      */
     private $coreNbr;
 
     /**
      * @ORM\Column(type="smallint")
+     * @Groups("product:read")
      */
     private $camMpx;
 
     /**
      * @ORM\Column(type="smallint")
+     * @Groups("product:read")
      */
     private $battery;
 
     /**
      * @ORM\ManyToOne(targetEntity=Brand::class, inversedBy="products")
+     * @Groups({"product:index", "product:read"})
      */
     private $brand;
 

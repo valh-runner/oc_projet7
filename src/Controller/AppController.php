@@ -2,19 +2,30 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\ProductRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class AppController extends AbstractController
 {
     /**
-     * @Route("/app", name="app")
+     * @Route("/api/products", name="api_product_index", methods={"GET"})
      */
-    public function index(): Response
+    public function index(ProductRepository $productRepository): Response
     {
-        return $this->render('app/index.html.twig', [
-            'controller_name' => 'AppController',
-        ]);
+        $products = $productRepository->findAll();
+        $response = $this->json($products, 200, [], ['groups' => 'product:index']);
+        return $response;
+    }
+
+    /**
+     * @Route("/api/products/{id}", name="api_product_detail", methods={"GET"})
+     */
+    public function detail(int $id, ProductRepository $productRepository): Response
+    {
+        $product = $productRepository->findOneBy(['id' => $id]);
+        $response = $this->json($product, 200, [], ['groups' => 'product:read']);
+        return $response;
     }
 }
