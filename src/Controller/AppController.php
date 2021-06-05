@@ -20,11 +20,11 @@ class AppController extends AbstractController
     }
 
     /**
-     * @Route("/api/products/{id}", name="api_product_detail", methods={"GET"})
+     * @Route("/api/products/{productId}", name="api_product_detail", methods={"GET"})
      */
-    public function detail(int $id, ProductRepository $productRepository): Response
+    public function detail(int $productId, ProductRepository $productRepository): Response
     {
-        $product = $productRepository->findOneBy(['id' => $id]);
+        $product = $productRepository->findOneBy(['id' => $productId]);
         $response = $this->json($product, 200, [], ['groups' => 'product:read']);
         return $response;
     }
