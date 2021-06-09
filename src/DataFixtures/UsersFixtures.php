@@ -17,7 +17,6 @@ class UsersFixtures extends Fixture
     }
     public function load(ObjectManager $manager)
     {
-
         $customersDataset = [
             [1, 'PeugeotFrance', '416s411v+'],
             [2, 'ChauffeurPrive', '8g14srvsh6'],
@@ -63,20 +62,12 @@ class UsersFixtures extends Fixture
 
                     $simpleUser->setUsername($simpleUsersDataset[$j][1])
                         ->setPassword($simpleUserPasswordHash)
+                        ->setRoles(['ROLE_USER'])
                         ->setOwner($costumerUser);
                     $manager->persist($simpleUser);
                 }
             }
         }
-
-
-
-
-
-
-
-
-
 
         $manager->flush();
     }
