@@ -27,12 +27,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @ORM\Column(type="string", length=180, unique=true)
      * @Groups("user:index")
-     * @Assert\NotBlank(message="Le nom d'utilisateur doit être renseigné", groups={"creation"})
-     * @Assert\Length(min=3, max=180, minMessage="Le nom d'utilisateur doit avoir au moins 3 caractères", groups={"creation"})
+     * @Assert\NotBlank(message="Le nom d'utilisateur doit être renseigné", groups={"create"})
+     * @Assert\Length(min=3, max=180, minMessage="Le nom d'utilisateur doit avoir au moins 3 caractères", groups={"create"})
      * @Assert\Regex(
      *      "#^[a-zA-Z0-9._-]+$#", 
      *      message="Le nom d'utilisateur peut comporter des caractères alphanumériques, points, tirets et underscores",
-     *      groups={"creation"}
+     *      groups={"create"}
      * )
      */
     private $username;
