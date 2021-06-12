@@ -63,7 +63,7 @@ class AppController extends AbstractController
             $user->setRoles(['ROLE_USER'])
                 ->setOwner($customerUser);
 
-            $errors = $validator->validate($user, null, ['creation']);
+            $errors = $validator->validate($user, null, ['create']);
             if (count($errors) > 0) {
                 $violationList = [];
                 for ($i = 0; $i < $errors->count(); $i++) {
