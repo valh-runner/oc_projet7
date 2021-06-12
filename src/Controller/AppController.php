@@ -146,16 +146,16 @@ class AppController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_CUSTOMER'); //restrict access to customers and admin
         $user = $userRepository->findOneBy(['id' => $userId]);
 
-        //if admin or if customer is the user owner - admin can delete unowned user for security reason
+        //if customer is the user owner or if admin - admin can also delete unowned user for security reasons
         if ($user->getOwner() == $this->getUser() || $authChecker->isGranted('ROLE_ADMIN')) {
             $manager->remove($user);
             $manager->flush();
             return $this->json(null, Response::HTTP_NO_CONTENT); // code 204
-        } else {
-            return $this->json([
-                'statusCode' => Response::HTTP_FORBIDDEN,
-                'message' => 'Vous ne disposez pas du droit de suppression de cet utilisateur'
-            ], Response::HTTP_FORBIDDEN); // code 403
         }
+        //in case the customer is not the user owner
+        return $this->json([
+            'statusCode' => Response::HTTP_FORBIDDEN,
+            'message' => 'Vous ne disposez pas du droit de suppression de cet utilisateur'
+        ], Response::HTTP_FORBIDDEN); // code 403
     }
 }
