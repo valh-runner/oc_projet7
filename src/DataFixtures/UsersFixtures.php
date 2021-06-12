@@ -18,7 +18,7 @@ class UsersFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         $customersDataset = [
-            [1, 'PeugeotFrance', '416s411v+'],
+            [1, 'PsaFrance', '416s411v+'],
             [2, 'ChauffeurPrive', '8g14srvsh6'],
             [3, 'PhoneStoreRivoli', 'N3v3rFound'],
             [4, 'Deliveroo', 'Runn4w4y'],
@@ -26,11 +26,11 @@ class UsersFixtures extends Fixture
         ];
 
         $simpleUsersDataset = [
-            [1, 'P17-fournitures', '14q81mh'],
-            [1, 'CollaborateursPeugeot', 'Atv18n'],
+            [1, 'P17-fournitures', '14q81mhu'],
+            [1, 'CollaborateursPeugeot', 'Atv18nG3'],
             [1, 'Siege75GrandeArmee', 'Kgh75GA#'],
             [2, 'FleetManagement', 'FL33Tmng'],
-            [2, 'CE-ChauffeurPrive', 'c298cen'],
+            [2, 'CE-ChauffeurPrive', 'c298cenh'],
             [3, 'Eric', 'kaboulox*'],
             [3, 'Nina', 'ikigai75'],
             [4, 'ServiceAchat', '92cay46k'],
@@ -46,13 +46,13 @@ class UsersFixtures extends Fixture
 
         //customers users creation
         for ($i = 0; $i < count($customersDataset); $i++) {
-            $costumerUser = new User();
-            $costumerPasswordHash = $this->passwordHasher->hashPassword($costumerUser, $customersDataset[$i][2]);
+            $customerUser = new User();
+            $costumerPasswordHash = $this->passwordHasher->hashPassword($customerUser, $customersDataset[$i][2]);
 
-            $costumerUser->setUsername($customersDataset[$i][1])
+            $customerUser->setUsername($customersDataset[$i][1])
                 ->setPassword($costumerPasswordHash)
                 ->setRoles(['ROLE_CUSTOMER']);
-            $manager->persist($costumerUser);
+            $manager->persist($customerUser);
 
             //current costumer simple users creation
             for ($j = 0; $j < count($simpleUsersDataset); $j++) {
@@ -63,7 +63,7 @@ class UsersFixtures extends Fixture
                     $simpleUser->setUsername($simpleUsersDataset[$j][1])
                         ->setPassword($simpleUserPasswordHash)
                         ->setRoles(['ROLE_USER'])
-                        ->setOwner($costumerUser);
+                        ->setOwner($customerUser);
                     $manager->persist($simpleUser);
                 }
             }

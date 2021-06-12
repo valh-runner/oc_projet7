@@ -2,12 +2,14 @@
 
 namespace App\Entity;
 
-use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use App\Repository\UserRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -18,11 +20,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups("user:index")
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Groups("user:index")
+     * @Assert\NotBlank(message="Le nom d'utilisateur doit être renseigné", groups={"creation"})
+     * @Assert\Length(min=3, max=180, minMessage="Le nom d'utilisateur doit avoir au moins 3 caractères", groups={"creation"})
+     * @Assert\Regex(
+     *      "#^[a-zA-Z0-9._-]+$#", 
+     *      message="Le nom d'utilisateur peut comporter des caractères alphanumériques, points, tirets et underscores",
+     *      groups={"creation"}
+     * )
      */
     private $username;
 
@@ -34,6 +45,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
+     * @Assert\NotBlank(message="Le mot de passe doit être renseigné", groups={"create", "update"})
+     * @Assert\Length(
+     *      min=8, max=255, minMessage="Le mot de passe doit avoir au moins 8 charactères",
+     *      groups={"create", "update"}
+     * )
      */
     private $password;
 

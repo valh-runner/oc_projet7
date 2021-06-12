@@ -64,4 +64,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         ;
     }
     */
+
+
+    public function findOwnedUsersOfUser($customerUser)
+    {
+        return $customerUser->getOwnedUsers();
+    }
 }
