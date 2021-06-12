@@ -65,18 +65,18 @@ class AppController extends AbstractController
 
             $errors = $validator->validate($user, null, ['creation']);
             if (count($errors) > 0) {
-                $formatedViolationList = [];
+                $violationList = [];
                 for ($i = 0; $i < $errors->count(); $i++) {
                     $violation = $errors->get($i);
-                    $formatedViolationList[] = ['propertyPath' => $violation->getPropertyPath(), 'message' => $violation->getMessage()];
+                    $violationList[] = ['propertyPath' => $violation->getPropertyPath(), 'message' => $violation->getMessage()];
                 }
                 return $this->json([
                     'status' => Response::HTTP_BAD_REQUEST,
-                    'message' => $formatedViolationList
+                    'message' => $violationList
                 ], Response::HTTP_BAD_REQUEST); // code 400
             }
-            $simpleUserPasswordHash = $passwordHasher->hashPassword($user, $user->getPassword());
-            $user->setPassword($simpleUserPasswordHash);
+            $userPasswordHash = $passwordHasher->hashPassword($user, $user->getPassword());
+            $user->setPassword($userPasswordHash);
 
             $manager->persist($user);
             $manager->flush();
@@ -107,18 +107,18 @@ class AppController extends AbstractController
                 $receivedUser = $serializer->deserialize($receivedJson, User::class, 'json');
                 $errors = $validator->validate($receivedUser, null, ['update']);
                 if (count($errors) > 0) {
-                    $formatedViolationList = [];
+                    $violationList = [];
                     for ($i = 0; $i < $errors->count(); $i++) {
                         $violation = $errors->get($i);
-                        $formatedViolationList[] = ['propertyPath' => $violation->getPropertyPath(), 'message' => $violation->getMessage()];
+                        $violationList[] = ['propertyPath' => $violation->getPropertyPath(), 'message' => $violation->getMessage()];
                     }
                     return $this->json([
                         'statusCode' => Response::HTTP_BAD_REQUEST,
-                        'errors' => $formatedViolationList
+                        'errors' => $violationList
                     ], Response::HTTP_BAD_REQUEST); // code 400
                 }
-                $simpleUserPasswordHash = $passwordHasher->hashPassword($user, $receivedUser->getPassword());
-                $user->setPassword($simpleUserPasswordHash);
+                $userPasswordHash = $passwordHasher->hashPassword($user, $receivedUser->getPassword());
+                $user->setPassword($userPasswordHash);
 
                 $manager->persist($user);
                 $manager->flush();
@@ -130,12 +130,12 @@ class AppController extends AbstractController
                     'message' => $e->getMessage()
                 ], Response::HTTP_BAD_REQUEST); // code 400
             }
-        } else {
-            return $this->json([
-                'statusCode' => Response::HTTP_FORBIDDEN,
-                'message' => 'Vous ne disposez pas du droit de modification de cet utilisateur'
-            ], Response::HTTP_FORBIDDEN); // code 403
         }
+        //in case the customer or admin is not the user owner
+        return $this->json([
+            'statusCode' => Response::HTTP_FORBIDDEN,
+            'message' => 'Vous ne disposez pas du droit de modification de cet utilisateur'
+        ], Response::HTTP_FORBIDDEN); // code 403
     }
 
     /**
