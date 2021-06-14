@@ -31,7 +31,7 @@ class AppController extends AbstractController
         $getParams = [
             'brand' => $request->query->get('brand', 'all'),
             'order' => $request->query->get('order', 'asc'),
-            'page' => intval($request->query->get('page', '1'))
+            'page' => (int) $request->query->get('page', '1')
         ];
 
         // query params validation

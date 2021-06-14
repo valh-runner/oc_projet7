@@ -79,12 +79,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function customerSimpleUsersCount(int $customerId)
     {
-        $qb = $this->createQueryBuilder('u')
+        $qBuilder = $this->createQueryBuilder('u')
             ->select('count(u.id)')
             ->where('u.owner = ?1')
             ->setParameter(1, $customerId);
 
-        $query = $qb->getQuery();
+        $query = $qBuilder->getQuery();
         return (int) $query->getSingleScalarResult();
     }
 }

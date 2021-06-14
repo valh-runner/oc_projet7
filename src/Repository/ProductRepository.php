@@ -55,21 +55,17 @@ class ProductRepository extends ServiceEntityRepository
     {
         $offset = ($page - 1) * 5;
 
-        $qb = $this->createQueryBuilder('p')
+        $qBuilder = $this->createQueryBuilder('p')
             ->leftJoin('p.brand', 'brand')
             ->orderBy('p.model', $order)
             ->setFirstResult($offset)
             ->setMaxResults(5);
         if ($term != 'all') {
-            $qb->where('brand.name LIKE :term')
+            $qBuilder->where('brand.name LIKE :term')
                 ->setParameter('term', '%' . $term . '%');
         }
-        /*
-        return $qb;
-        #return $this->paginate($qb, $limit, $offset);
-        */
 
-        $query = $qb->getQuery();
+        $query = $qBuilder->getQuery();
         return $query->getResult();
     }
 
@@ -78,15 +74,15 @@ class ProductRepository extends ServiceEntityRepository
      */
     public function unpaginatedSearchCount(String $term)
     {
-        $qb = $this->createQueryBuilder('p')
+        $qBuilder = $this->createQueryBuilder('p')
             ->select('count(p.id)')
             ->leftJoin('p.brand', 'brand');
         if ($term != 'all') {
-            $qb->where('brand.name LIKE :term')
+            $qBuilder->where('brand.name LIKE :term')
                 ->setParameter('term', '%' . $term . '%');
         }
 
-        $query = $qb->getQuery();
+        $query = $qBuilder->getQuery();
         return (int) $query->getSingleScalarResult();
     }
 }
