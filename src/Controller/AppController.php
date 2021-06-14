@@ -6,26 +6,76 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Validation;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use Symfony\Component\Serializer\Exception\NotEncodableValueException;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AppController extends AbstractController
 {
     /**
-     * @Route("/api/products", name="api_product_index", methods={"GET"})
+     * @Route("/api/products", name="api_product_index", methods={"GET"}, requirements={"page"="\d+"})
      */
-    public function index(ProductRepository $productRepository): Response
+    public function index(Request $request, ProductRepository $productRepository, ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER'); //restrict access to users and admin
-        $products = $productRepository->findAll();
-        return $this->json($products, Response::HTTP_OK, [], ['groups' => 'product:index']); // code 200
+
+        // get params initialisation
+        $getParams = [
+            'brand' => $request->query->get('brand', 'all'),
+            'order' => $request->query->get('order', 'asc'),
+            'page' => intval($request->query->get('page', '1'))
+        ];
+
+        // query params validation
+        $validator = Validation::createValidator();
+        $constraint = new Assert\Collection([
+            'brand' => new Assert\Optional([
+                new Assert\NotBlank(null, 'la valeur ne doit pas être vide'),
+                new Assert\Type('string', 'chaîne de caratères attendue')
+            ]),
+            'order' => new Assert\Choice(['choices' => ['asc', 'desc'], 'message' => 'valeur erronée']),
+            'page' => [
+                new Assert\Type('numeric', 'nombre entier positif attendu'),
+                new Assert\Regex('#^[1-9]\d*$#', 'nombre entier positif attendu - zéro exclu')
+            ]
+        ]);
+        $violations = $validator->validate($getParams, $constraint);
+        if (count($violations) > 0) {
+            return $this->validationErrorsResponse($violations); //send errors details response
+        }
+
+        // data retrieve
+        $fullProductsCount = $productRepository->unpaginatedSearchCount($getParams['brand']);
+        $results = $productRepository->paginatedSearch($getParams['brand'], $getParams['order'], $getParams['page']);
+        $lastPage = ceil($fullProductsCount / 5);
+        $currentResultsCount = count($results);
+
+        //if asked page is out of bound
+        if ($getParams['page'] > $lastPage) {
+            return $this->errorResponse(Response::HTTP_BAD_REQUEST, 'La page n\'existe pas'); // code 400
+        }
+
+        // response content build
+        $content = [
+            'meta' => [
+                'totalPaginatedItems' => $fullProductsCount,
+                'maxItemsPerPage' => 5,
+                'lastPage' => $lastPage,
+                'currentPage' => $getParams['page'],
+                'currentPageItems' => $currentResultsCount
+            ],
+            'data' => $results
+        ];
+
+        return $this->json($content, Response::HTTP_OK, [], ['groups' => 'product:index']); // code 200
     }
 
     /**
@@ -52,28 +102,25 @@ class AppController extends AbstractController
     /**
      * @Route("/api/users", name="api_user_create", methods={"POST"})
      */
-    public function userCreate(Request $request, SerializerInterface $serializer, EntityManagerInterface $manager, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
+    public function userCreate(Request $request, UserRepository $userRepository, SerializerInterface $serializer, EntityManagerInterface $manager, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_CUSTOMER'); //restrict access to customers and admin
         $customerUser = $this->getUser();
         $receivedJson = $request->getContent();
+
+        // Check if user have reached 20 simple users limit
+        if ($userRepository->customerSimpleUsersCount($customerUser->getId()) >= 20) {
+            return $this->errorResponse(Response::HTTP_FORBIDDEN, 'création d\'utilisateur refusée - limite de 20 utilisateurs par client'); // code 403
+        }
 
         try {
             $user = $serializer->deserialize($receivedJson, User::class, 'json');
             $user->setRoles(['ROLE_USER'])
                 ->setOwner($customerUser);
 
-            $errors = $validator->validate($user, null, ['create']);
-            if (count($errors) > 0) {
-                $violationList = [];
-                for ($i = 0; $i < $errors->count(); $i++) {
-                    $violation = $errors->get($i);
-                    $violationList[] = ['propertyPath' => $violation->getPropertyPath(), 'message' => $violation->getMessage()];
-                }
-                return $this->json([
-                    'status' => Response::HTTP_BAD_REQUEST,
-                    'message' => $violationList
-                ], Response::HTTP_BAD_REQUEST); // code 400
+            $violations = $validator->validate($user, null, ['create']);
+            if (count($violations) > 0) {
+                return $this->validationErrorsResponse($violations); //send errors details response
             }
             $userPasswordHash = $passwordHasher->hashPassword($user, $user->getPassword());
             $user->setPassword($userPasswordHash);
@@ -84,10 +131,7 @@ class AppController extends AbstractController
             $userLocation = '/api/users/' . $user->getId();
             return $this->json($user, Response::HTTP_CREATED, ['Location' => $userLocation], ['groups' => 'user:index']); // code 201
         } catch (NotEncodableValueException $e) {
-            return $this->json([
-                'status' => Response::HTTP_BAD_REQUEST,
-                'message' => $e->getMessage()
-            ], Response::HTTP_BAD_REQUEST); // code 400
+            return $this->errorResponse(Response::HTTP_BAD_REQUEST, $e->getMessage()); // code 400
         }
     }
 
@@ -105,17 +149,9 @@ class AppController extends AbstractController
 
             try {
                 $receivedUser = $serializer->deserialize($receivedJson, User::class, 'json');
-                $errors = $validator->validate($receivedUser, null, ['update']);
-                if (count($errors) > 0) {
-                    $violationList = [];
-                    for ($i = 0; $i < $errors->count(); $i++) {
-                        $violation = $errors->get($i);
-                        $violationList[] = ['propertyPath' => $violation->getPropertyPath(), 'message' => $violation->getMessage()];
-                    }
-                    return $this->json([
-                        'statusCode' => Response::HTTP_BAD_REQUEST,
-                        'errors' => $violationList
-                    ], Response::HTTP_BAD_REQUEST); // code 400
+                $violations = $validator->validate($receivedUser, null, ['update']);
+                if (count($violations) > 0) {
+                    return $this->validationErrorsResponse($violations); //send errors details response
                 }
                 $userPasswordHash = $passwordHasher->hashPassword($user, $receivedUser->getPassword());
                 $user->setPassword($userPasswordHash);
@@ -125,17 +161,11 @@ class AppController extends AbstractController
                 return $this->json(null, Response::HTTP_NO_CONTENT); // code 204
 
             } catch (NotEncodableValueException $e) {
-                return $this->json([
-                    'statusCode' => Response::HTTP_BAD_REQUEST,
-                    'message' => $e->getMessage()
-                ], Response::HTTP_BAD_REQUEST); // code 400
+                return $this->errorResponse(Response::HTTP_BAD_REQUEST, $e->getMessage()); // code 400
             }
         }
         //in case the customer or admin is not the user owner
-        return $this->json([
-            'statusCode' => Response::HTTP_FORBIDDEN,
-            'message' => 'Vous ne disposez pas du droit de modification de cet utilisateur'
-        ], Response::HTTP_FORBIDDEN); // code 403
+        return $this->errorResponse(Response::HTTP_FORBIDDEN, 'droit de modification de cet utilisateur refusé'); // code 403
     }
 
     /**
@@ -153,9 +183,30 @@ class AppController extends AbstractController
             return $this->json(null, Response::HTTP_NO_CONTENT); // code 204
         }
         //in case the customer is not the user owner
+        return $this->errorResponse(Response::HTTP_FORBIDDEN, 'droit de suppression de cet utilisateur refusé'); // code 403
+    }
+
+    private function validationErrorsResponse($violations)
+    {
+        $errors = [];
+        for ($i = 0; $i < $violations->count(); $i++) {
+            $violation = $violations->get($i);
+            $errors[] = [
+                'propertyPath' => $violation->getPropertyPath(),
+                'message' => $violation->getMessage()
+            ];
+        }
         return $this->json([
-            'statusCode' => Response::HTTP_FORBIDDEN,
-            'message' => 'Vous ne disposez pas du droit de suppression de cet utilisateur'
-        ], Response::HTTP_FORBIDDEN); // code 403
+            'status' => Response::HTTP_BAD_REQUEST,
+            'errors' => $errors
+        ], Response::HTTP_BAD_REQUEST); // code 400
+    }
+
+    private function errorResponse($statusCode, $message)
+    {
+        return $this->json([
+            'statusCode' => $statusCode,
+            'message' => $message
+        ], $statusCode);
     }
 }
