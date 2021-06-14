@@ -47,4 +47,42 @@ class ProductRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    /**
+     * @return Product[] Returns an array of Product objects
+     */
+    public function paginatedSearch($term, $order, $page)
+    {
+        $offset = ($page - 1) * 5;
+
+        $qBuilder = $this->createQueryBuilder('p')
+            ->leftJoin('p.brand', 'brand')
+            ->orderBy('p.model', $order)
+            ->setFirstResult($offset)
+            ->setMaxResults(5);
+        if ($term != 'all') {
+            $qBuilder->where('brand.name LIKE :term')
+                ->setParameter('term', '%' . $term . '%');
+        }
+
+        $query = $qBuilder->getQuery();
+        return $query->getResult();
+    }
+
+    /**
+     * @return int Returns the number of unpaginated products search
+     */
+    public function unpaginatedSearchCount(String $term)
+    {
+        $qBuilder = $this->createQueryBuilder('p')
+            ->select('count(p.id)')
+            ->leftJoin('p.brand', 'brand');
+        if ($term != 'all') {
+            $qBuilder->where('brand.name LIKE :term')
+                ->setParameter('term', '%' . $term . '%');
+        }
+
+        $query = $qBuilder->getQuery();
+        return (int) $query->getSingleScalarResult();
+    }
 }

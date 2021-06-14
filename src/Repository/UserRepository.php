@@ -65,9 +65,26 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
     */
 
-
-    public function findOwnedUsersOfUser($customerUser)
+    /**
+     * @return User[] Returns an array of User objects owned by a customer
+     */
+    public function findOwnedUsersOfUser(User $customerUser)
     {
         return $customerUser->getOwnedUsers();
+    }
+
+
+    /**
+     * @return int Returns the number of users of a customer
+     */
+    public function customerSimpleUsersCount(int $customerId)
+    {
+        $qBuilder = $this->createQueryBuilder('u')
+            ->select('count(u.id)')
+            ->where('u.owner = ?1')
+            ->setParameter(1, $customerId);
+
+        $query = $qBuilder->getQuery();
+        return (int) $query->getSingleScalarResult();
     }
 }
