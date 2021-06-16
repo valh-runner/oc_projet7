@@ -51,18 +51,18 @@ class ProductRepository extends ServiceEntityRepository
     /**
      * @return Product[] Returns an array of Product objects
      */
-    public function paginatedSearch($term, $order, $page)
+    public function paginatedSearch($keyword, $order, $limit, $page)
     {
-        $offset = ($page - 1) * 5;
+        $offset = ($page - 1) * $limit;
 
         $qBuilder = $this->createQueryBuilder('p')
             ->leftJoin('p.brand', 'brand')
             ->orderBy('p.model', $order)
             ->setFirstResult($offset)
-            ->setMaxResults(5);
-        if ($term != 'all') {
-            $qBuilder->where('brand.name LIKE :term')
-                ->setParameter('term', '%' . $term . '%');
+            ->setMaxResults($limit);
+        if ($keyword != 'all') {
+            $qBuilder->where('brand.name LIKE :keyword')
+                ->setParameter('keyword', '%' . $keyword . '%');
         }
 
         $query = $qBuilder->getQuery();
@@ -72,14 +72,14 @@ class ProductRepository extends ServiceEntityRepository
     /**
      * @return int Returns the number of unpaginated products search
      */
-    public function unpaginatedSearchCount(String $term)
+    public function unpaginatedSearchCount(String $keyword)
     {
         $qBuilder = $this->createQueryBuilder('p')
             ->select('count(p.id)')
             ->leftJoin('p.brand', 'brand');
-        if ($term != 'all') {
-            $qBuilder->where('brand.name LIKE :term')
-                ->setParameter('term', '%' . $term . '%');
+        if ($keyword != 'all') {
+            $qBuilder->where('brand.name LIKE :keyword')
+                ->setParameter('keyword', '%' . $keyword . '%');
         }
 
         $query = $qBuilder->getQuery();

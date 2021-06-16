@@ -24,7 +24,7 @@ class AppController extends AbstractController
     /**
      * @Route("/api/products", name="api_product_index", methods={"GET"}, requirements={"page"="\d+"})
      */
-    public function index(Request $request, ProductRepository $productRepository, ValidatorInterface $validator): Response
+    public function productIndex(Request $request, ProductRepository $productRepository, ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER'); //restrict access to users and admin
 
@@ -32,7 +32,8 @@ class AppController extends AbstractController
         $getParams = [
             'brand' => $request->query->get('brand', 'all'),
             'order' => $request->query->get('order', 'asc'),
-            'page' => (int) $request->query->get('page', '1')
+            //'page' => (int) $request->query->get('page', '1')
+            'page' => $request->query->get('page', '1')
         ];
 
         // query params validation
@@ -42,9 +43,12 @@ class AppController extends AbstractController
                 new Assert\NotBlank(null, 'la valeur ne doit pas être vide'),
                 new Assert\Type('string', 'chaîne de caratères attendue')
             ]),
-            'order' => new Assert\Choice(['choices' => ['asc', 'desc'], 'message' => 'valeur erronée']),
+            'order' => [
+                new Assert\NotBlank(null, 'la valeur ne doit pas être vide'),
+                new Assert\Choice(['choices' => ['asc', 'desc'], 'message' => 'valeur erronée'])
+            ],
             'page' => [
-                new Assert\Type('numeric', 'nombre entier positif attendu'),
+                new Assert\NotBlank(null, 'la valeur ne doit pas être vide'),
                 new Assert\Regex('#^[1-9]\d*$#', 'nombre entier positif attendu - zéro exclu')
             ]
         ]);
@@ -52,12 +56,14 @@ class AppController extends AbstractController
         if (count($violations) > 0) {
             return $this->validationErrorsResponse($violations); //send errors details response
         }
+        $getParams['page'] = (int) $getParams['page']; //set asked page as int
 
         // data retrieve
+        $PageItemsLimit = 5;
         $fullProductsCount = $productRepository->unpaginatedSearchCount($getParams['brand']);
-        $results = $productRepository->paginatedSearch($getParams['brand'], $getParams['order'], $getParams['page']);
-        $lastPage = ceil($fullProductsCount / 5);
-        $currentResultsCount = count($results);
+        $currentProducts = $productRepository->paginatedSearch($getParams['brand'], $getParams['order'], $PageItemsLimit, $getParams['page']);
+        $lastPage = ceil($fullProductsCount / $PageItemsLimit);
+        $currentProductsCount = count($currentProducts);
 
         //if asked page is out of bound
         if ($getParams['page'] > $lastPage) {
@@ -68,25 +74,29 @@ class AppController extends AbstractController
         $content = [
             'meta' => [
                 'totalPaginatedItems' => $fullProductsCount,
-                'maxItemsPerPage' => 5,
+                'maxItemsPerPage' => $PageItemsLimit,
                 'lastPage' => $lastPage,
                 'currentPage' => $getParams['page'],
-                'currentPageItems' => $currentResultsCount
+                'currentPageItems' => $currentProductsCount
             ],
-            'data' => $results
+            'data' => $currentProducts
         ];
-
         return $this->json($content, Response::HTTP_OK, [], ['groups' => 'product:index']); // code 200
     }
 
     /**
      * @Route("/api/products/{productId<\d+>}", name="api_product_detail", methods={"GET"})
      */
-    public function detail(int $productId, ProductRepository $productRepository): Response
+    public function productDetail(int $productId, ProductRepository $productRepository): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER'); //restrict access to users and admin
         $product = $productRepository->findOneBy(['id' => $productId]);
-        return $this->json($product, Response::HTTP_OK, [], ['groups' => 'product:read']); // code 200
+        //if the asked product exist
+        if ($product) {
+            return $this->json($product, Response::HTTP_OK, [], ['groups' => 'product:read']); // code 200
+        }
+        //in case the asked product don't exist
+        return $this->errorResponse(Response::HTTP_BAD_REQUEST, 'ce produit n\'existe pas'); // code 400
     }
 
     /**
@@ -97,7 +107,14 @@ class AppController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_CUSTOMER'); //restrict access to customers and admin
         $customerUser = $this->getUser();
         $ownedUsers = $userRepository->findOwnedUsersOfUser($customerUser);
-        return $this->json($ownedUsers, Response::HTTP_OK, [], ['groups' => 'user:index']); // code 200
+        $ownedUsersCount = count($ownedUsers);
+
+        // response content build
+        $content = [
+            'meta' => ['totalItems' => $ownedUsersCount],
+            'data' => $ownedUsers
+        ];
+        return $this->json($content, Response::HTTP_OK, [], ['groups' => 'user:index']); // code 200
     }
 
     /**
@@ -166,28 +183,33 @@ class AppController extends AbstractController
         $user = $userRepository->findOneBy(['id' => $userId]);
         $receivedJson = $request->getContent();
 
-        //if customer or admin is the user owner
-        if ($user->getOwner() == $this->getUser()) {
+        //if the asked user exist
+        if ($user) {
+            //if customer or admin is the user owner
+            if ($user->getOwner() == $this->getUser()) {
 
-            try {
-                $receivedUser = $serializer->deserialize($receivedJson, User::class, 'json');
-                $violations = $validator->validate($receivedUser, null, ['update']);
-                if (count($violations) > 0) {
-                    return $this->validationErrorsResponse($violations); //send errors details response
+                try {
+                    $receivedUser = $serializer->deserialize($receivedJson, User::class, 'json');
+                    $violations = $validator->validate($receivedUser, null, ['update']);
+                    if (count($violations) > 0) {
+                        return $this->validationErrorsResponse($violations); //send errors details response
+                    }
+                    $userPasswordHash = $passwordHasher->hashPassword($user, $receivedUser->getPassword());
+                    $user->setPassword($userPasswordHash);
+
+                    $manager->persist($user);
+                    $manager->flush();
+                    return $this->json(null, Response::HTTP_NO_CONTENT); // code 204
+
+                } catch (NotEncodableValueException $e) {
+                    return $this->errorResponse(Response::HTTP_BAD_REQUEST, $e->getMessage()); // code 400
                 }
-                $userPasswordHash = $passwordHasher->hashPassword($user, $receivedUser->getPassword());
-                $user->setPassword($userPasswordHash);
-
-                $manager->persist($user);
-                $manager->flush();
-                return $this->json(null, Response::HTTP_NO_CONTENT); // code 204
-
-            } catch (NotEncodableValueException $e) {
-                return $this->errorResponse(Response::HTTP_BAD_REQUEST, $e->getMessage()); // code 400
             }
+            //in case the customer or admin is not the user owner
+            return $this->errorResponse(Response::HTTP_FORBIDDEN, 'droit de modification de cet utilisateur refusé'); // code 403
         }
-        //in case the customer or admin is not the user owner
-        return $this->errorResponse(Response::HTTP_FORBIDDEN, 'droit de modification de cet utilisateur refusé'); // code 403
+        //in case the asked user don't exist
+        return $this->errorResponse(Response::HTTP_BAD_REQUEST, 'cet utilisateur n\'existe pas'); // code 400
     }
 
     /**
@@ -198,14 +220,19 @@ class AppController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_CUSTOMER'); //restrict access to customers and admin
         $user = $userRepository->findOneBy(['id' => $userId]);
 
-        //if customer is the user owner or if admin - admin can delete unowned user for security reasons
-        if ($user->getOwner() == $this->getUser() || $authChecker->isGranted('ROLE_ADMIN')) {
-            $manager->remove($user);
-            $manager->flush();
-            return $this->json(null, Response::HTTP_NO_CONTENT); // code 204
+        //if the asked user exist
+        if ($user) {
+            //if customer is the user owner or if admin - admin can delete unowned user for security reasons
+            if ($user->getOwner() == $this->getUser() || $authChecker->isGranted('ROLE_ADMIN')) {
+                $manager->remove($user);
+                $manager->flush();
+                return $this->json(null, Response::HTTP_NO_CONTENT); // code 204
+            }
+            //in case the customer is not the user owner
+            return $this->errorResponse(Response::HTTP_FORBIDDEN, 'droit de suppression de cet utilisateur refusé'); // code 403
         }
-        //in case the customer is not the user owner
-        return $this->errorResponse(Response::HTTP_FORBIDDEN, 'droit de suppression de cet utilisateur refusé'); // code 403
+        //in case the asked user don't exist
+        return $this->errorResponse(Response::HTTP_BAD_REQUEST, 'cet utilisateur n\'existe pas'); // code 400
     }
 
     private function validationErrorsResponse($violations)
