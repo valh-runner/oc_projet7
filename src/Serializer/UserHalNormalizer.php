@@ -41,7 +41,7 @@ class UserHalNormalizer implements ContextAwareNormalizerInterface
         return $data;
     }
 
-    public function supportsNormalization($data, string $format = null, array $context = [])
+    public function supportsNormalization($data, string $unused_format = null, array $context = [])
     {
         return $data instanceof User;
     }
