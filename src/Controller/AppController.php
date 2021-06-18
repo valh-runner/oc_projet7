@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Repository\BrandRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validation;
@@ -24,7 +25,7 @@ class AppController extends AbstractController
     /**
      * @Route("/api/products", name="api_product_index", methods={"GET"}, requirements={"page"="\d+"})
      */
-    public function productIndex(Request $request, ProductRepository $productRepository, ValidatorInterface $validator): Response
+    public function productIndex(Request $request, ProductRepository $productRepository, BrandRepository $brandRepository, ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER'); //restrict access to users and admin
 
@@ -32,7 +33,6 @@ class AppController extends AbstractController
         $getParams = [
             'brand' => $request->query->get('brand', 'all'),
             'order' => $request->query->get('order', 'asc'),
-            //'page' => (int) $request->query->get('page', '1')
             'page' => $request->query->get('page', '1')
         ];
 
@@ -70,6 +70,12 @@ class AppController extends AbstractController
             return $this->errorResponse(Response::HTTP_BAD_REQUEST, 'La page n\'existe pas'); // code 400
         }
 
+        // available brands content format
+        $brands = $brandRepository->findAll();
+        $brandsNames = array_map(function ($value) {
+            return $value->getName();
+        }, $brands);
+
         // response content build
         $content = [
             'meta' => [
@@ -77,7 +83,8 @@ class AppController extends AbstractController
                 'maxItemsPerPage' => $PageItemsLimit,
                 'lastPage' => $lastPage,
                 'currentPage' => $getParams['page'],
-                'currentPageItems' => $currentProductsCount
+                'currentPageItems' => $currentProductsCount,
+                'availableBrands' => $brandsNames
             ],
             'data' => $currentProducts
         ];
