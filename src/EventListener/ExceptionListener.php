@@ -10,9 +10,9 @@ use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 
 class ExceptionListener
 {
-    #/**
-    # * @param ExceptionEvent $event
-    # */
+    /**
+     * @param ExceptionEvent $event
+     */
     public function onKernelException(ExceptionEvent $event)
     {
         $exception = $event->getThrowable(); // get the exception from the event
@@ -22,30 +22,30 @@ class ExceptionListener
         // if type of exception is HttpExceptionInterface it holds status code and header details
         if ($exception instanceof HttpExceptionInterface) {
             $statusCode = $exception->getStatusCode();
-            $data['status'] = $statusCode;
+            $data['code'] = $statusCode;
             $response->setStatusCode($statusCode);
             $response->headers->replace($exception->getHeaders());
 
             switch ($statusCode) {
-                case '400':
+                case 400:
                     $data['message'] = 'La requête ne peut être traitée correctement';
                     break;
-                case '401':
+                case 401:
                     $data['message'] = 'L\'authentification a échoué';
                     break;
-                case '403':
+                case 403:
                     $data['message'] = 'L\'accès à cette ressource n\'est pas autorisé';
                     break;
-                case '404':
+                case 404:
                     $data['message'] = 'La ressource n\'existe pas';
                     break;
-                case '405':
+                case 405:
                     $data['message'] = 'La méthode HTTP utilisée n\'est pas traitable par l\'API';
                     break;
-                case '406':
+                case 406:
                     $data['message'] = 'Le serveur n\'est pas en mesure de répondre aux attentes des entêtes';
                     break;
-                case '500':
+                case 500:
                     $data['message'] = 'Le serveur a rencontré un problème';
                     break;
                 default:
@@ -58,7 +58,8 @@ class ExceptionListener
         }
 
         $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
-        $data['error code'] = $exception->getCode();
+        $data['code'] = Response::HTTP_INTERNAL_SERVER_ERROR; // code 500
+        $data['errorCode'] = $exception->getCode();
         $data['message'] = $exception->getMessage();
 
         $response->setData($data);

@@ -23,6 +23,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      * @Groups("user:index")
+     * 
+     * @var int
      */
     private $id;
 
@@ -36,11 +38,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      *      message="Le nom d'utilisateur peut comporter des caractères alphanumériques, points, tirets et underscores",
      *      groups={"create"}
      * )
+     * 
+     * @var string
      */
     private $username;
 
     /**
      * @ORM\Column(type="json")
+     * 
+     * @var array
      */
     private $roles = [];
 
@@ -57,11 +63,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="ownedUsers")
+     * 
+     * @var User
      */
     private $owner;
 
     /**
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="owner")
+     * 
+     * @var Collection
      */
     private $ownedUsers;
 

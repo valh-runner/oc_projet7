@@ -18,17 +18,23 @@ class Brand
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      * @Groups({"product:index", "product:read"})
+     * 
+     * @var int
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"product:index", "product:read"})
+     * 
+     * @var string
      */
     private $name;
 
     /**
      * @ORM\OneToMany(targetEntity=Product::class, mappedBy="brand")
+     * 
+     * @var Collection
      */
     private $products;
 

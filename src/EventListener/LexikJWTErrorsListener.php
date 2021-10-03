@@ -36,7 +36,7 @@ class LexikJWTErrorsListener
     public function onJWTNotFound(JWTNotFoundEvent $event)
     {
         $data = [
-            'status'  => '401 Unauthorized',
+            'code'  => JsonResponse::HTTP_UNAUTHORIZED,
             'message' => 'Jeton d\'identification JWT manquant',
         ];
         $response = new JsonResponse($data, JsonResponse::HTTP_UNAUTHORIZED);
