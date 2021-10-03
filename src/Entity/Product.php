@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ProductRepository;
 use Symfony\Component\Serializer\Annotation\Groups;
+use OpenApi\Annotations as OA;
 
 /**
  * @ORM\Entity(repositoryClass=ProductRepository::class)
@@ -16,84 +17,112 @@ class Product
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      * @Groups({"product:index", "product:read"})
+     * 
+     * @var int
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"product:index", "product:read"})
+     * 
+     * @var string
      */
     private $model;
 
     /**
      * @ORM\Column(type="float")
      * @Groups("product:read")
+     * 
+     * @var float
      */
     private $htPrice;
 
     /**
      * @ORM\Column(type="string", length=4)
      * @Groups("product:read")
+     * 
+     * @var string
      */
     private $releaseYear;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
+     * 
+     * @var int
      */
     private $weight;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("product:read")
+     * 
+     * @var string
      */
     private $plateform;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("product:read")
+     * 
+     * @var string
      */
     private $color;
 
     /**
      * @ORM\Column(type="float")
      * @Groups("product:read")
+     * 
+     * @var float
      */
     private $screenSize;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
+     * 
+     * @var int
      */
     private $storageSize;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
+     * 
+     * @var int
      */
     private $ram;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
+     * 
+     * @var int
      */
     private $coreNbr;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
+     * 
+     * @var int
      */
     private $camMpx;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
+     * 
+     * @var int
      */
     private $battery;
 
     /**
      * @ORM\ManyToOne(targetEntity=Brand::class, inversedBy="products")
      * @Groups({"product:index", "product:read"})
+     * 
+     * @var Brand
      */
     private $brand;
 

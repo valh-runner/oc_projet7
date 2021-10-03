@@ -1,0 +1,1110 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "BileMo REST API Documentation",
+        "description": "REST API Documentation of BileMo",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "https://localhost:8000/",
+            "description": "BileMo REST API"
+        }
+    ],
+    "paths": {
+        "/api/login_check": {
+            "post": {
+                "tags": [
+                    "Login"
+                ],
+                "summary": "Authentication",
+                "description": "Authentication token access",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "example": "T.Wellick"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "19N1t10n%"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK - Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE2MzI4NDI2NTgsImV4cCI6MTYzMjg0NjI1OCwicm9sZXMiOlsiUk9MRV9DVVNUT01FUiJdLCJ1c2VybmFtZSI6IlBzYUZyYW5jZSJ9.lpgfnOpZQ13Q-HtOCqtRdD8ChcI3NlWpTsiK9Ff6LlXiC7ih89tvxyPgj5xKeYFQQZlLS7838ukT_QnWdjbyEmG8NvZD5mD-jmMKBTGaEGMiVs8c0J7OcrFb_duKe8-9cmho3j1DvODzVXOqDTYL3J-C-2Qg0bW4RzCT1rVxgvAcFGHG5MbpFyvwft96V-ZablsmTE_7a3rkFnc8mvcWW4ivVr2UDKxcZKa9dQWXO72KMKF7-7eXEFmJSSXfRc9kUo-rXA9IWnJ9upzXWQeDP-0Ccgmzl6ukMzowUS2NsYwaHq7cmhB4wCTqTA8ubgpjYWbZiTxts0rbOjY5KW_0plB7VPrIarBSmi4rmjK0RJ68-MDrofpyMGy32S_TnBM0xN4cNqozxL0Rx9OxvyYnaxxSZ8NFOFQfABAevulCCG68jhXcEA6qknJ6OXVD3zESbFNYbkvt8iO48CuUXoRVb7Xv-mokrJW9CQpA7Aiz2M7vXYbEAIfux012Y_ZnTfDPseikYYT8xKFEGOFZ-oeejx15y7GbF5VLhV-IEisYC7Z7rTdsaa6OXt7sfJ1Ux9Y98bksWqncgOBddUwbGC9-r2cWF2V0C8-zcjHsfNfP5jttHgpbsEMguguX_al6QARYRnUu3_CrGqgQD2mh8EO4AX3EaswfuV-6IldyL7z3A7A"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/LoginUnauthorized"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/LoginBadRequest"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/products": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Products index",
+                "description": "List of products",
+                "operationId": "7039000cbbf7804803dd7d52ca445c39",
+                "parameters": [
+                    {
+                        "name": "brand",
+                        "in": "query",
+                        "description": "Refine to a specific brand",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "description": "Define an order sort",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "asc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number to ask",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": "1"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK - Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProductIndexList"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ProductBadRequest"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/ProductActionForbidden"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AccessUnauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{productId}": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Product detail",
+                "description": "Detail of a product",
+                "operationId": "e5929b87ce94317f33e78a7b84a91419",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "description": "Id of asked product",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK - Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProductRead"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ProductNotFound"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/ProductActionForbidden"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AccessUnauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Users index",
+                "description": "List of owned simple users",
+                "operationId": "ba7b24a28d4a9de827965dbbb754c2a7",
+                "responses": {
+                    "200": {
+                        "description": "OK - Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserIndexList"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/UserActionForbidden"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AccessUnauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "User creation",
+                "description": "Detail of created product",
+                "operationId": "32f2918cb5b34a423248c7ec13c2138f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "example": "T.Wellick"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "19N1t10n%"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created - Success",
+                        "headers": {
+                            "Location": {
+                                "description": "location of created user",
+                                "schema": {
+                                    "type": "string",
+                                    "example": "https://localhost:8000/api/users/12"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserIndex"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/UserCreateBadRequest"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/UserCreateForbidden"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AccessUnauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{userId}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "User detail",
+                "description": "Detail of a user",
+                "operationId": "ef14ad95c6897d94e73decab79a83e3e",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "Id of user to read",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK - Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserIndex"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/UserNotFound"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/UserActionForbidden"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AccessUnauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "User update",
+                "description": "User creation",
+                "operationId": "399df8e79beaca33c4ead7b58c4a37b2",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "Id of user to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "password"
+                                ],
+                                "properties": {
+                                    "password": {
+                                        "type": "string",
+                                        "example": "%Ex0g3n%"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content - Success"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/UserUpdateBadRequest"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/UserUpdateForbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/UserNotFound"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AccessUnauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "User deletion",
+                "description": "User deletion",
+                "operationId": "9e6c1b89cad861778d4750f5250f6b83",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "Id of user to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content - Success"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/UserDeleteForbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/UserNotFound"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AccessUnauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ProductHalLinks": {
+                "properties": {
+                    "self": {
+                        "properties": {
+                            "href": {
+                                "type": "string",
+                                "example": "https://localhost:8000/api/products/12"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ProductIndex": {
+                "description": "Normalized product index",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "brand": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "_links": {
+                        "$ref": "#/components/schemas/ProductHalLinks"
+                    }
+                },
+                "type": "object"
+            },
+            "ProductRead": {
+                "description": "Normalized product read",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 12
+                    },
+                    "model": {
+                        "type": "string",
+                        "example": "Samsung Galaxy A52 5G"
+                    },
+                    "ht_price": {
+                        "type": "number",
+                        "example": 320
+                    },
+                    "release_year": {
+                        "type": "string",
+                        "example": "2021"
+                    },
+                    "weight": {
+                        "type": "integer",
+                        "example": 189
+                    },
+                    "plateform": {
+                        "type": "string",
+                        "example": "Android 11"
+                    },
+                    "color": {
+                        "type": "string",
+                        "example": "noir"
+                    },
+                    "screen_size": {
+                        "type": "number",
+                        "example": 6.5
+                    },
+                    "storage_size": {
+                        "type": "integer",
+                        "example": 128
+                    },
+                    "ram": {
+                        "type": "integer",
+                        "example": 6
+                    },
+                    "core_nbr": {
+                        "type": "integer",
+                        "example": 8
+                    },
+                    "cam_mpx": {
+                        "type": "integer",
+                        "example": 64
+                    },
+                    "battery": {
+                        "type": "integer",
+                        "example": 4500
+                    },
+                    "brand": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "Samsung"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "_links": {
+                        "$ref": "#/components/schemas/ProductHalLinks"
+                    }
+                },
+                "type": "object"
+            },
+            "ProductIndexList": {
+                "description": "List of normalized product index",
+                "properties": {
+                    "meta": {
+                        "properties": {
+                            "totalPaginatedItems": {
+                                "type": "integer",
+                                "example": "3"
+                            },
+                            "maxItemsPerPage": {
+                                "type": "integer",
+                                "example": "5"
+                            },
+                            "lastPage": {
+                                "type": "integer",
+                                "example": "1"
+                            },
+                            "currentPage": {
+                                "type": "integer",
+                                "example": "1"
+                            },
+                            "currentPageItems": {
+                                "type": "integer",
+                                "example": "3"
+                            },
+                            "availableBrands": {
+                                "type": "array",
+                                "example": [
+                                    "Apple",
+                                    "Samsung",
+                                    "Huawei",
+                                    "Xiaomi"
+                                ]
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProductIndex"
+                        },
+                        "example": [
+                            {
+                                "id": 1,
+                                "model": "iPhone 12 - 256",
+                                "brand": {
+                                    "id": 1,
+                                    "name": "Apple"
+                                },
+                                "_links": {
+                                    "self": {
+                                        "href": "https://localhost:8000/api/products/1"
+                                    }
+                                }
+                            },
+                            {
+                                "id": 14,
+                                "model": "P40 5G",
+                                "brand": {
+                                    "id": 3,
+                                    "name": "Huawei"
+                                },
+                                "_links": {
+                                    "self": {
+                                        "href": "https://localhost:8000/api/products/14"
+                                    }
+                                }
+                            },
+                            {
+                                "id": 10,
+                                "model": "S21 5G - 256 Go - 8 Go",
+                                "brand": {
+                                    "id": 2,
+                                    "name": "Samsung"
+                                },
+                                "_links": {
+                                    "self": {
+                                        "href": "https://localhost:8000/api/products/10"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "UserHalLinks": {
+                "properties": {
+                    "self": {
+                        "properties": {
+                            "href": {
+                                "type": "string",
+                                "example": "https://localhost:8000/api/users/12"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "modify": {
+                        "properties": {
+                            "href": {
+                                "type": "string",
+                                "example": "https://localhost:8000/api/users/12"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "delete": {
+                        "properties": {
+                            "href": {
+                                "type": "string",
+                                "example": "https://localhost:8000/api/users/12"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "UserHalEmbedded": {
+                "properties": {
+                    "owner": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": "2"
+                            },
+                            "username": {
+                                "type": "string",
+                                "example": "E Corp"
+                            },
+                            "_links": {
+                                "properties": {
+                                    "self": {
+                                        "properties": {
+                                            "href": {
+                                                "type": "string",
+                                                "example": "https://localhost:8000/api/users/2"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "UserIndex": {
+                "description": "Normalized user index",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 12
+                    },
+                    "username": {
+                        "type": "string",
+                        "example": "T.Wellick"
+                    },
+                    "_links": {
+                        "$ref": "#/components/schemas/UserHalLinks"
+                    },
+                    "_embedded": {
+                        "$ref": "#/components/schemas/UserHalEmbedded"
+                    }
+                },
+                "type": "object"
+            },
+            "UserIndexList": {
+                "description": "List of normalized user index",
+                "properties": {
+                    "meta": {
+                        "properties": {
+                            "totalItems": {
+                                "type": "integer",
+                                "example": "2"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/UserIndex"
+                        },
+                        "example": [
+                            {
+                                "id": 42,
+                                "username": "E.Alderson",
+                                "_links": {
+                                    "self": {
+                                        "href": "https://localhost:8000/api/users/42"
+                                    },
+                                    "modify": {
+                                        "href": "https://localhost:8000/api/users/42"
+                                    },
+                                    "delete": {
+                                        "href": "https://localhost:8000/api/users/42"
+                                    }
+                                },
+                                "_embedded": {
+                                    "owner": {
+                                        "id": 3,
+                                        "username": "Allsafe cybersecurity",
+                                        "_links": {
+                                            "self": {
+                                                "href": "https://localhost:8000/api/users/3"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "id": 45,
+                                "username": "A.Moss",
+                                "_links": {
+                                    "self": {
+                                        "href": "https://localhost:8000/api/users/42"
+                                    },
+                                    "modify": {
+                                        "href": "https://localhost:8000/api/users/42"
+                                    },
+                                    "delete": {
+                                        "href": "https://localhost:8000/api/users/42"
+                                    }
+                                },
+                                "_embedded": {
+                                    "owner": {
+                                        "id": 3,
+                                        "username": "Allsafe cybersecurity",
+                                        "_links": {
+                                            "self": {
+                                                "href": "https://localhost:8000/api/users/3"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "contentResponseError": {
+                "properties": {
+                    "code": {
+                        "type": "int"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "contentResponsePropertiesErrors": {
+                "properties": {
+                    "code": {
+                        "type": "int",
+                        "example": 400
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "propertyPath": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "responses": {
+            "ProductNotFound": {
+                "description": "Not Found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "example": {
+                            "code": 404,
+                            "message": "Ce produit n'existe pas"
+                        }
+                    }
+                }
+            },
+            "ProductBadRequest": {
+                "description": "Bad Request",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponsePropertiesErrors"
+                        },
+                        "example": {
+                            "code": 400,
+                            "errors": [
+                                {
+                                    "propertyPath": "[order]",
+                                    "message": "Valeur erronée"
+                                },
+                                {
+                                    "propertyPath": "[page]",
+                                    "message": "Nombre entier positif attendu - zéro exclu"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "UserNotFound": {
+                "description": "Not Found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "example": {
+                            "code": 404,
+                            "message": "Cet utilisateur n'existe pas"
+                        }
+                    }
+                }
+            },
+            "UserCreateBadRequest": {
+                "description": "Bad Request",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponsePropertiesErrors"
+                        },
+                        "example": {
+                            "code": 400,
+                            "errors": [
+                                {
+                                    "propertyPath": "username",
+                                    "message": "Le nom d'utilisateur peut comporter des caractères alphanumériques, points, tirets et underscores"
+                                },
+                                {
+                                    "propertyPath": "password",
+                                    "message": "Le mot de passe doit être renseigné"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "UserCreateForbidden": {
+                "description": "Forbidden",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "examples": {
+                            "one": {
+                                "summary": "User creation limit reached",
+                                "value": {
+                                    "code": 403,
+                                    "message": "Création d'utilisateur refusée - limite de 20 utilisateurs par client"
+                                }
+                            },
+                            "Not connected as a customer": {
+                                "$ref": "#/components/examples/AccessForbiddenExample"
+                            }
+                        }
+                    }
+                }
+            },
+            "UserUpdateForbidden": {
+                "description": "Forbidden",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "examples": {
+                            "one": {
+                                "summary": "User to act on is not owned by you",
+                                "value": {
+                                    "code": 403,
+                                    "message": "Droit de modification de cet utilisateur refusé"
+                                }
+                            },
+                            "Not connected as a customer": {
+                                "$ref": "#/components/examples/AccessForbiddenExample"
+                            }
+                        }
+                    }
+                }
+            },
+            "UserUpdateBadRequest": {
+                "description": "Bad Request",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "example": {
+                            "code": 400,
+                            "message": "Syntax error"
+                        }
+                    }
+                }
+            },
+            "UserDeleteForbidden": {
+                "description": "Forbidden",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "examples": {
+                            "one": {
+                                "summary": "User to act on is not owned by you",
+                                "value": {
+                                    "code": 403,
+                                    "message": "Droit de suppression de cet utilisateur refusé"
+                                }
+                            },
+                            "Not connected as a customer": {
+                                "$ref": "#/components/examples/AccessForbiddenExample"
+                            }
+                        }
+                    }
+                }
+            },
+            "LoginUnauthorized": {
+                "description": "Unauthorized",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "example": {
+                            "code": 401,
+                            "message": "Informations de connexion non valides"
+                        }
+                    }
+                }
+            },
+            "LoginBadRequest": {
+                "description": "Bad Request",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "example": {
+                            "code": 400,
+                            "message": "La requête ne peut être traitée correctement"
+                        }
+                    }
+                }
+            },
+            "ProductActionForbidden": {
+                "description": "Forbidden - Not connected as a simple user",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "example": {
+                            "code": 403,
+                            "message": "L'accès à cette ressource n'est pas autorisé"
+                        }
+                    }
+                }
+            },
+            "UserActionForbidden": {
+                "description": "Forbidden - Not connected as a customer",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "example": {
+                            "code": 403,
+                            "message": "L'accès à cette ressource n'est pas autorisé"
+                        }
+                    }
+                }
+            },
+            "AccessUnauthorized": {
+                "description": "Unauthorized",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/contentResponseError"
+                        },
+                        "examples": {
+                            "one": {
+                                "summary": "Access token is missing",
+                                "value": {
+                                    "code": 401,
+                                    "message": "Jeton d'identification JWT manquant"
+                                }
+                            },
+                            "two": {
+                                "summary": "Access token is not valid",
+                                "value": {
+                                    "code": 401,
+                                    "message": "Jeton d'identification JWT non valide"
+                                }
+                            },
+                            "three": {
+                                "summary": "Access token is expired",
+                                "value": {
+                                    "code": 401,
+                                    "message": "Jeton d'identification JWT expiré"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "examples": {
+            "AccessForbiddenExample": {
+                "value": {
+                    "code": 403,
+                    "message": "L'accès à cette ressource n'est pas autorisé"
+                }
+            }
+        },
+        "securitySchemes": {
+            "Bearer": {
+                "type": "http",
+                "description": "Enter JWT Bearer token",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Login",
+            "description": ""
+        },
+        {
+            "name": "Products",
+            "description": "accessible by simple users owned by a customer"
+        },
+        {
+            "name": "Users",
+            "description": "accessible by customers"
+        }
+    ]
+}

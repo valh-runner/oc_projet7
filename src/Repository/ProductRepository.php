@@ -19,39 +19,15 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
-    // /**
-    //  * @return Product[] Returns an array of Product objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('p.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Product
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
-
     /**
-     * @return Product[] Returns an array of Product objects
+     * Returns a portion of Products as a page of pagination, according to a search
+     * @param string $keyword
+     * @param int $order
+     * @param int $limit
+     * @param int $page
+     * @return Product[] Array of Product objects
      */
-    public function paginatedSearch($keyword, $order, $limit, $page)
+    public function paginatedSearch(string $keyword, int $order, int $limit, int $page)
     {
         $offset = ($page - 1) * $limit;
 
@@ -70,7 +46,9 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return int Returns the number of unpaginated products search
+     * Returns the total number of Products, according to a search
+     * @param String $keyword
+     * @return int Number of products
      */
     public function unpaginatedSearchCount(String $keyword)
     {
