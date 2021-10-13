@@ -7,8 +7,11 @@ use OpenApi\Annotations as OA;
 use App\Repository\UserRepository;
 use App\Repository\BrandRepository;
 use App\Repository\ProductRepository;
+use Psr\Cache\CacheItemPoolInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\Validator\Validation;
+use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -88,10 +91,11 @@ class AppController extends AbstractController
      * @param ProductRepository $productRepository
      * @param BrandRepository $brandRepository
      * @param ValidatorInterface $validator
+     * @param CacheItemPoolInterface $productPool
      * @return JsonResponse
-     * @Route("/api/products", name="api_product_index", methods={"GET"}, requirements={"page"="\d+"})
+     * @Route("/api/products", name="api_product_index", methods={"GET"}, requirements={"page"="\d+"}, stateless=true)
      */
-    public function productIndex(Request $request, ProductRepository $productRepository, BrandRepository $brandRepository, ValidatorInterface $validator): JsonResponse
+    public function productIndex(Request $request, ProductRepository $productRepository, BrandRepository $brandRepository, ValidatorInterface $validator, CacheItemPoolInterface $productPool): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_USER'); //restrict access to users and admin
 
@@ -154,7 +158,17 @@ class AppController extends AbstractController
             ],
             'data' => $currentProducts
         ];
-        return $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'product:index']); // code 200
+
+        //cache management
+        $itemKey = 'product-index-' . $getParams['brand'] . '-' . $getParams['order'] . '-' . $getParams['page'];
+        $productIndexItem = $productPool->getItem($itemKey);
+        if (!$productIndexItem->isHit()) {
+            $productIndexItem->set(
+                $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'product:index']) // code 200
+            );
+            $productPool->save($productIndexItem);
+        }
+        return $productIndexItem->get();
     }
 
     /**
@@ -180,19 +194,43 @@ class AppController extends AbstractController
      * 
      * @param int $productId
      * @param ProductRepository $productRepository
+     * @param CacheItemPoolInterface $productPool
      * @return JsonResponse
-     * @Route("/api/products/{productId<\d+>}", name="api_product_detail", methods={"GET"})
+     * @Route("/api/products/{productId<\d+>}", name="api_product_detail", methods={"GET"}, stateless=true)
      */
-    public function productDetail(int $productId, ProductRepository $productRepository): JsonResponse
+    public function productDetail(int $productId, ProductRepository $productRepository, CacheItemPoolInterface $productPool): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_USER'); //restrict access to users and admin
         $product = $productRepository->findOneBy(['id' => $productId]);
-        //if the asked product exist
+        //if the asked product exists
         if ($product) {
-            return $this->json($product, JsonResponse::HTTP_OK, [], ['groups' => 'product:read']); // code 200
+            //cache management
+            $itemKey = 'product-detail-' . $product->getId();
+            $productDetailItem = $productPool->getItem($itemKey);
+            if (!$productDetailItem->isHit()) {
+                $productDetailItem->set(
+                    $this->json($product, JsonResponse::HTTP_OK, [], ['groups' => 'product:read']) // code 200
+                );
+                $productPool->save($productDetailItem);
+            }
+            return $productDetailItem->get();
         }
-        //in case the asked product don't exist
+        //in case the asked product don't exists
         return $this->errorResponse(JsonResponse::HTTP_NOT_FOUND, 'Ce produit n\'existe pas'); // code 404
+    }
+
+    /**
+     * Product cache deletion - confidential admin management endpoint used when changes in products
+     * 
+     * @param CacheItemPoolInterface $productPool
+     * @return JsonResponse
+     * @Route("/api/products_cache_delete", name="api_product_cache_delete", methods={"DELETE"}, stateless=true)
+     */
+    public function productCacheDelete(CacheItemPoolInterface $productPool): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN'); //restrict access to admin
+        $productPool->clear(); //delete all cached products index and detail
+        return $this->json(null, JsonResponse::HTTP_NO_CONTENT); // code 204
     }
 
     /**
@@ -212,10 +250,11 @@ class AppController extends AbstractController
      * )
      * 
      * @param UserRepository $userRepository
+     * @param CacheInterface $userPool
      * @return JsonResponse
-     * @Route("/api/users", name="api_user_index", methods={"GET"})
+     * @Route("/api/users", name="api_user_index", methods={"GET"}, stateless=true)
      */
-    public function userIndex(UserRepository $userRepository): JsonResponse
+    public function userIndex(UserRepository $userRepository, CacheInterface $userPool): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_CUSTOMER'); //restrict access to customers and admin
         $customerUser = $this->getUser();
@@ -227,7 +266,12 @@ class AppController extends AbstractController
             'meta' => ['totalItems' => $ownedUsersCount],
             'data' => $ownedUsers
         ];
-        return $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'user:index']); // code 200
+
+        //cache management
+        return $userPool->get('user-index-' . $customerUser->getId(), function (ItemInterface $item) use ($content) {
+            $item->expiresAfter(604800); // expires after one week
+            return $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'user:index']); // code 200
+        });
     }
 
     /**
@@ -254,24 +298,29 @@ class AppController extends AbstractController
      * @param int $userId
      * @param UserRepository $userRepository
      * @param AuthorizationCheckerInterface $authChecker
+     * @param CacheInterface $userPool
      * @return JsonResponse
-     * @Route("/api/users/{userId<\d+>}", name="api_user_detail", methods={"GET"})
+     * @Route("/api/users/{userId<\d+>}", name="api_user_detail", methods={"GET"}, stateless=true)
      */
-    public function userDetail(int $userId, UserRepository $userRepository, AuthorizationCheckerInterface $authChecker): JsonResponse
+    public function userDetail(int $userId, UserRepository $userRepository, AuthorizationCheckerInterface $authChecker, CacheInterface $userPool): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_CUSTOMER'); //restrict access to customers and admin
         $user = $userRepository->findOneBy(['id' => $userId]);
 
-        //if the asked user exist
+        //if the asked user exists
         if ($user) {
             //if customer is the user owner or if admin - admin can display unowned user
             if ($user->getOwner() == $this->getUser() || $authChecker->isGranted('ROLE_ADMIN')) {
-                return $this->json($user, JsonResponse::HTTP_OK, [], ['groups' => 'user:index']); // code 200
+                //cache management
+                return $userPool->get('user-detail-' . $user->getId(), function (ItemInterface $item) use ($user) {
+                    $item->expiresAfter(604800); // expires after one week
+                    return $this->json($user, JsonResponse::HTTP_OK, [], ['groups' => 'user:index']); // code 200
+                });
             }
             //in case the customer is not the user owner
             return $this->errorResponse(JsonResponse::HTTP_FORBIDDEN, 'Droit d\'affichage de cet utilisateur refusé'); // code 403
         }
-        //in case the asked user don't exist
+        //in case the asked user don't exists
         return $this->errorResponse(JsonResponse::HTTP_NOT_FOUND, 'Cet utilisateur n\'existe pas'); // code 404
     }
 
@@ -310,10 +359,11 @@ class AppController extends AbstractController
      * @param EntityManagerInterface $manager
      * @param UserPasswordHasherInterface $passwordHasher
      * @param ValidatorInterface $validator
+     * @param CacheInterface $userPool
      * @return JsonResponse
-     * @Route("/api/users", name="api_user_create", methods={"POST"})
+     * @Route("/api/users", name="api_user_create", methods={"POST"}, stateless=true)
      */
-    public function userCreate(Request $request, UserRepository $userRepository, SerializerInterface $serializer, EntityManagerInterface $manager, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): JsonResponse
+    public function userCreate(Request $request, UserRepository $userRepository, SerializerInterface $serializer, EntityManagerInterface $manager, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator, CacheInterface $userPool): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_CUSTOMER'); //restrict access to customers and admin
         $customerUser = $this->getUser();
@@ -338,6 +388,7 @@ class AppController extends AbstractController
 
             $manager->persist($user);
             $manager->flush();
+            $userPool->delete('user-index-' . $customerUser->getId()); //force cache expiration if cache exists
 
             $userLocation = $this->generateUrl('api_user_detail', ['userId' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
             return $this->json($user, JsonResponse::HTTP_CREATED, ['Location' => $userLocation], ['groups' => 'user:index']); // code 201
@@ -380,7 +431,7 @@ class AppController extends AbstractController
      * @param UserPasswordHasherInterface $passwordHasher
      * @param ValidatorInterface $validator
      * @return JsonResponse
-     * @Route("/api/users/{userId<\d+>}", name="api_user_password_update", methods={"PUT"})
+     * @Route("/api/users/{userId<\d+>}", name="api_user_password_update", methods={"PUT"}, stateless=true)
      */
     public function userPasswordUpdate(int $userId, Request $request, SerializerInterface $serializer, UserRepository $userRepository, EntityManagerInterface $manager, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): JsonResponse
     {
@@ -388,10 +439,11 @@ class AppController extends AbstractController
         $user = $userRepository->findOneBy(['id' => $userId]);
         $receivedJson = $request->getContent();
 
-        //if the asked user exist
+        //if the asked user exists
         if ($user) {
+            $userOwner = $user->getOwner();
             //if customer or admin is the user owner
-            if ($user->getOwner() == $this->getUser()) {
+            if ($userOwner == $this->getUser()) {
 
                 try {
                     $receivedUser = $serializer->deserialize($receivedJson, User::class, 'json');
@@ -401,11 +453,10 @@ class AppController extends AbstractController
                     }
                     $userPasswordHash = $passwordHasher->hashPassword($user, $receivedUser->getPassword());
                     $user->setPassword($userPasswordHash);
-
                     $manager->persist($user);
                     $manager->flush();
-                    return $this->json(null, JsonResponse::HTTP_NO_CONTENT); // code 204
 
+                    return $this->json(null, JsonResponse::HTTP_NO_CONTENT); // code 204
                 } catch (NotEncodableValueException $e) {
                     return $this->errorResponse(JsonResponse::HTTP_BAD_REQUEST, $e->getMessage()); // code 400
                 }
@@ -413,7 +464,7 @@ class AppController extends AbstractController
             //in case the customer or admin is not the user owner
             return $this->errorResponse(JsonResponse::HTTP_FORBIDDEN, 'Droit de modification de cet utilisateur refusé'); // code 403
         }
-        //in case the asked user don't exist
+        //in case the asked user don't exists
         return $this->errorResponse(JsonResponse::HTTP_NOT_FOUND, 'Cet utilisateur n\'existe pas'); // code 404
     }
 
@@ -439,18 +490,22 @@ class AppController extends AbstractController
      * @param UserRepository $userRepository
      * @param EntityManagerInterface $manager
      * @param AuthorizationCheckerInterface $authChecker
+     * @param CacheInterface $userPool
      * @return JsonResponse
-     * @Route("/api/users/{userId<\d+>}", name="api_user_delete", methods={"DELETE"})
+     * @Route("/api/users/{userId<\d+>}", name="api_user_delete", methods={"DELETE"}, stateless=true)
      */
-    public function userDelete(int $userId, UserRepository $userRepository, EntityManagerInterface $manager, AuthorizationCheckerInterface $authChecker): JsonResponse
+    public function userDelete(int $userId, UserRepository $userRepository, EntityManagerInterface $manager, AuthorizationCheckerInterface $authChecker, CacheInterface $userPool): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_CUSTOMER'); //restrict access to customers and admin
         $user = $userRepository->findOneBy(['id' => $userId]);
 
-        //if the asked user exist
+        //if the asked user exists
         if ($user) {
+            $userOwner = $user->getOwner();
             //if customer is the user owner or if admin - admin can delete unowned user for security reasons
-            if ($user->getOwner() == $this->getUser() || $authChecker->isGranted('ROLE_ADMIN')) {
+            if ($userOwner == $this->getUser() || $authChecker->isGranted('ROLE_ADMIN')) {
+                $userPool->delete('user-index-' . $userOwner->getId()); //force cache expiration if cache exists
+                $userPool->delete('user-detail-' . $user->getId()); //force cache expiration if cache exists
                 $manager->remove($user);
                 $manager->flush();
                 return $this->json(null, JsonResponse::HTTP_NO_CONTENT); // code 204
@@ -458,7 +513,7 @@ class AppController extends AbstractController
             //in case the customer is not the user owner
             return $this->errorResponse(JsonResponse::HTTP_FORBIDDEN, 'Droit de suppression de cet utilisateur refusé'); // code 403
         }
-        //in case the asked user don't exist
+        //in case the asked user don't exists
         return $this->errorResponse(JsonResponse::HTTP_NOT_FOUND, 'Cet utilisateur n\'existe pas'); // code 404
     }
 

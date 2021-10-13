@@ -27,7 +27,7 @@ class ProductRepository extends ServiceEntityRepository
      * @param int $page
      * @return Product[] Array of Product objects
      */
-    public function paginatedSearch(string $keyword, int $order, int $limit, int $page)
+    public function paginatedSearch(string $keyword, string $order, int $limit, int $page)
     {
         $offset = ($page - 1) * $limit;
 

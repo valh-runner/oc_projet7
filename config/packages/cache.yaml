@@ -15,5 +15,9 @@ framework:
         #app: cache.adapter.apcu
 
         # Namespaced pools use the above "app" backend by default
-        #pools:
+        pools:
             #my.dedicated.cache: null
+            product_pool:
+                default_lifetime: 604800 # expires after one week
+            user_pool:
+                default_lifetime: 604800 # expires after one week
