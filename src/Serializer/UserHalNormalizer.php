@@ -131,18 +131,18 @@ class UserHalNormalizer implements ContextAwareNormalizerInterface
 
         // Here, add, edit, or delete some data:
         $data['_links']['self']['href'] = $this->router->generate('api_user_detail', [
-            'userId' => $user->getId(),
+            'userId' => $user->getId()
         ], UrlGeneratorInterface::ABSOLUTE_URL);
         $data['_links']['modify']['href'] = $this->router->generate('api_user_password_update', [
-            'userId' => $user->getId(),
+            'userId' => $user->getId()
         ], UrlGeneratorInterface::ABSOLUTE_URL);
         $data['_links']['delete']['href'] = $this->router->generate('api_user_delete', [
-            'userId' => $user->getId(),
+            'userId' => $user->getId()
         ], UrlGeneratorInterface::ABSOLUTE_URL);
         $data['_embedded']['owner']['id'] = $user->getOwner()->getId();
         $data['_embedded']['owner']['username'] = $user->getOwner()->getUsername();
         $data['_embedded']['owner']['_links']['self']['href'] = $this->router->generate('api_user_detail', [
-            'userId' => $user->getOwner()->getId(),
+            'userId' => $user->getOwner()->getId()
         ], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return $data;

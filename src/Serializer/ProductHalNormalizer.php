@@ -98,7 +98,7 @@ class ProductHalNormalizer implements ContextAwareNormalizerInterface
 
         // Here, add, edit, or delete some data:
         $data['_links']['self']['href'] = $this->router->generate('api_product_detail', [
-            'productId' => $product->getId(),
+            'productId' => $product->getId()
         ], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return $data;
