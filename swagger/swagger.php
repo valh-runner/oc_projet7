@@ -78,12 +78,35 @@ use OpenApi\Annotations as OA;
  *      description="Bad Request",
  *      @OA\JsonContent(
  *          ref="#/components/schemas/contentResponsePropertiesErrors",
- *          example={"code":400, "errors":{
- *              {"propertyPath":"username", "message":
- *                  "Le nom d'utilisateur peut comporter des caractères alphanumériques, points, tirets et underscores"
+ *          examples = {
+ *              "one": {"summary": "Blank username and/or password", "value":
+ *                  {"code":400, "errors":{
+ *                      {"propertyPath":"username", "message":"Le nom d'utilisateur doit être renseigné"},
+ *                      {"propertyPath":"password", "message":"Le mot de passe doit être renseigné"}
+ *                  }}
  *              },
- *              {"propertyPath":"password", "message":"Le mot de passe doit être renseigné"}
- *          }}
+ *              "two": {"summary": "Too short username and/or password", "value":
+ *                  {"code":400, "errors":{
+ *                      {"propertyPath":"username", "message":"Le nom d'utilisateur doit avoir au moins 3 caractères"},
+ *                      {"propertyPath":"password", "message":"Le mot de passe doit avoir au moins 8 charactères"}
+ *                  }}
+ *              },
+ *              "three": {"summary": "Incorrect characters in username", "value":
+ *                  {"code":400, "errors":{
+ *                      {"propertyPath":"username", "message":
+ *                          "Le nom d'utilisateur peut comporter des caractères alphanumériques, points, tirets et underscores"
+ *                      }
+ *                  }}
+ *              },
+ *              "four": {"summary": "Allready used username", "value":
+ *                  {"code":400, "errors":{
+ *                      {"propertyPath":"username", "message":"Ce nom d'utilisateur est déja utilisé"}
+ *                  }}
+ *              },
+ *              "five": {"summary": "Json syntax error", "value":
+ *                  {"code":400, "message":"Syntax error"}
+ *              }
+ *          }
  *      )
  * )
  * @OA\Response(
@@ -119,7 +142,21 @@ use OpenApi\Annotations as OA;
  *      description="Bad Request",
  *      @OA\JsonContent(
  *          ref="#/components/schemas/contentResponseError",
- *          example={"code":400, "message":"Syntax error"}
+ *          examples = {
+ *              "one": {"summary": "Blank password", "value":
+ *                  {"code":400, "errors":{
+ *                      {"propertyPath":"password", "message":"Le mot de passe doit être renseigné"}
+ *                  }}
+ *              },
+ *              "two": {"summary": "Too short password", "value":
+ *                  {"code":400, "errors":{
+ *                      {"propertyPath":"password", "message":"Le mot de passe doit avoir au moins 8 charactères"}
+ *                  }}
+ *              },
+ *              "three": {"summary": "Json syntax error", "value":
+ *                  {"code":400, "message":"Syntax error"}
+ *              }
+ *          }
  *      )
  * )
  * @OA\Response(
