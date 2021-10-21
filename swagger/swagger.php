@@ -198,10 +198,15 @@ use OpenApi\Annotations as OA;
  * )
  * @OA\Response(
  *      response="UserActionForbidden",
- *      description="Forbidden - Not connected as a customer",
+ *      description="Forbidden",
  *      @OA\JsonContent(
  *          ref="#/components/schemas/contentResponseError",
- *          example={"code":403, "message":"L'accès à cette ressource n'est pas autorisé"}
+ *          examples = {
+ *              "one": {"summary":"User to display on is not owned by you",
+ *                      "value":{"code":403, "message":"Droit d'affichage de cet utilisateur refusé"}},
+ *              "two": {"summary":"Not connected as a customer",
+ *                      "value":{"code":403, "message":"L'accès à cette ressource n'est pas autorisé"}}
+ *          }
  *      )
  * )
  * @OA\Response(

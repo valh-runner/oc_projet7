@@ -18,7 +18,7 @@
                     "Login"
                 ],
                 "summary": "Authentication",
-                "description": "Authentication token access",
+                "description": "Ask for an authentication token",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -76,7 +76,7 @@
                     "Products"
                 ],
                 "summary": "Products index",
-                "description": "List of products",
+                "description": "Obtain a list of products",
                 "operationId": "7039000cbbf7804803dd7d52ca445c39",
                 "parameters": [
                     {
@@ -147,7 +147,7 @@
                     "Products"
                 ],
                 "summary": "Product detail",
-                "description": "Detail of a product",
+                "description": "Obtain the detail of a product",
                 "operationId": "e5929b87ce94317f33e78a7b84a91419",
                 "parameters": [
                     {
@@ -194,7 +194,7 @@
                     "Users"
                 ],
                 "summary": "Users index",
-                "description": "List of owned simple users",
+                "description": "Obtain the list of owned simple users",
                 "operationId": "ba7b24a28d4a9de827965dbbb754c2a7",
                 "responses": {
                     "200": {
@@ -225,7 +225,7 @@
                     "Users"
                 ],
                 "summary": "User creation",
-                "description": "Detail of created product",
+                "description": "Create a simple user you own",
                 "operationId": "32f2918cb5b34a423248c7ec13c2138f",
                 "requestBody": {
                     "required": true,
@@ -294,7 +294,7 @@
                     "Users"
                 ],
                 "summary": "User detail",
-                "description": "Detail of a user",
+                "description": "Obtain the detail of a user you own",
                 "operationId": "ef14ad95c6897d94e73decab79a83e3e",
                 "parameters": [
                     {
@@ -339,7 +339,7 @@
                     "Users"
                 ],
                 "summary": "User update",
-                "description": "User creation",
+                "description": "Update the password of a simple user you own",
                 "operationId": "399df8e79beaca33c4ead7b58c4a37b2",
                 "parameters": [
                     {
@@ -399,7 +399,7 @@
                     "Users"
                 ],
                 "summary": "User deletion",
-                "description": "User deletion",
+                "description": "Delete a simple user you own",
                 "operationId": "9e6c1b89cad861778d4750f5250f6b83",
                 "parameters": [
                     {
@@ -1110,15 +1110,27 @@
                 }
             },
             "UserActionForbidden": {
-                "description": "Forbidden - Not connected as a customer",
+                "description": "Forbidden",
                 "content": {
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/contentResponseError"
                         },
-                        "example": {
-                            "code": 403,
-                            "message": "L'accès à cette ressource n'est pas autorisé"
+                        "examples": {
+                            "one": {
+                                "summary": "User to display on is not owned by you",
+                                "value": {
+                                    "code": 403,
+                                    "message": "Droit d'affichage de cet utilisateur refusé"
+                                }
+                            },
+                            "two": {
+                                "summary": "Not connected as a customer",
+                                "value": {
+                                    "code": 403,
+                                    "message": "L'accès à cette ressource n'est pas autorisé"
+                                }
+                            }
                         }
                     }
                 }
