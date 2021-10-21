@@ -32,7 +32,7 @@ class AppController extends AbstractController
      * 
      * @OA\Post(
      *      path="/api/login_check",
-     *      description="Authentication token access",
+     *      description="Ask for an authentication token",
      *      tags={"Login"},
      *      security={},
      *      @OA\RequestBody(
@@ -63,7 +63,7 @@ class AppController extends AbstractController
      * 
      * @OA\Get(
      *      path="/api/products",
-     *      description="List of products",
+     *      description="Obtain a list of products",
      *      tags={"Products"},
      *      security={{"Bearer": {}}},
      *      @OA\Parameter(
@@ -176,7 +176,7 @@ class AppController extends AbstractController
      * 
      * @OA\Get(
      *      path="/api/products/{productId}",
-     *      description="Detail of a product",
+     *      description="Obtain the detail of a product",
      *      tags={"Products"},
      *      security={{"Bearer": {}}},
      *      @OA\Parameter(
@@ -238,7 +238,7 @@ class AppController extends AbstractController
      * 
      * @OA\Get(
      *      path="/api/users",
-     *      description="List of owned simple users",
+     *      description="Obtain the list of owned simple users",
      *      tags={"Users"},
      *      security={{"Bearer": {}}},
      *      @OA\Response(
@@ -279,7 +279,7 @@ class AppController extends AbstractController
      * 
      * @OA\Get(
      *      path="/api/users/{userId}",
-     *      description="Detail of a user",
+     *      description="Obtain the detail of a user you own",
      *      tags={"Users"},
      *      security={{"Bearer": {}}},
      *      @OA\Parameter(
@@ -329,7 +329,7 @@ class AppController extends AbstractController
      * 
      * @OA\Post(
      *      path="/api/users",
-     *      description="Detail of created product",
+     *      description="Create a simple user you own",
      *      tags={"Users"},
      *      security={{"Bearer": {}}},
      *      @OA\RequestBody(
@@ -402,7 +402,7 @@ class AppController extends AbstractController
      * 
      * @OA\Put(
      *      path="/api/users/{userId}",
-     *      description="User creation",
+     *      description="Update the password of a simple user you own",
      *      tags={"Users"},
      *      security={{"Bearer": {}}},
      *      @OA\Parameter(
@@ -473,7 +473,7 @@ class AppController extends AbstractController
      * 
      * @OA\Delete(
      *      path="/api/users/{userId}",
-     *      description="User deletion",
+     *      description="Delete a simple user you own",
      *      tags={"Users"},
      *      security={{"Bearer": {}}},
      *      @OA\Parameter(
