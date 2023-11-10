@@ -116,13 +116,8 @@ use OpenApi\Annotations as OA;
  */
 class UserHalNormalizer implements ContextAwareNormalizerInterface
 {
-    private $router;
-    private $normalizer;
-
-    public function __construct(UrlGeneratorInterface $router, ObjectNormalizer $normalizer)
+    public function __construct(private UrlGeneratorInterface $router, private ObjectNormalizer $normalizer)
     {
-        $this->router = $router;
-        $this->normalizer = $normalizer;
     }
 
     public function normalize($user, string $format = null, array $context = [])

@@ -24,14 +24,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     /**
      * Used to upgrade (rehash) the user's password automatically over time.
-     * @param PasswordAuthenticatedUserInterface $user
-     * @param string $newEncodedPassword
      * @return void
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newEncodedPassword): void
     {
         if (!$user instanceof User) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
         }
 
         $user->setPassword($newEncodedPassword);
@@ -41,7 +39,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     /**
      * Returns the owned users of a customer user
-     * @param User $customerUser
      * @return User[] Returns an array of User objects owned by a customer
      */
     public function findOwnedUsersOfUser(User $customerUser)
@@ -51,7 +48,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
 
     /**
-     * @param int $customerId
      * @return int Returns the number of users of a customer
      */
     public function customerSimpleUsersCount(int $customerId)

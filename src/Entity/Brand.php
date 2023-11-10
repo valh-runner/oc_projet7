@@ -26,17 +26,13 @@ class Brand
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"product:index", "product:read"})
-     * 
-     * @var string
      */
-    private $name;
+    private ?string $name = null;
 
     /**
      * @ORM\OneToMany(targetEntity=Product::class, mappedBy="brand")
-     * 
-     * @var Collection
      */
-    private $products;
+    private \Doctrine\Common\Collections\Collection|array $products;
 
     public function __construct()
     {

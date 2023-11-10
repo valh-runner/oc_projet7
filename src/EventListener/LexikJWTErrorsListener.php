@@ -12,27 +12,18 @@ use Lexik\Bundle\JWTAuthenticationBundle\Response\JWTAuthenticationFailureRespon
 class LexikJWTErrorsListener
 {
 
-    /**
-     * @param AuthenticationFailureEvent $event
-     */
     public function onAuthenticationFailureResponse(AuthenticationFailureEvent $event)
     {
         $response = new JWTAuthenticationFailureResponse('Informations de connexion non valides', JsonResponse::HTTP_UNAUTHORIZED);
         $event->setResponse($response);
     }
 
-    /**
-     * @param JWTInvalidEvent $event
-     */
     public function onJWTInvalid(JWTInvalidEvent $event)
     {
         $response = new JWTAuthenticationFailureResponse('Jeton d\'identification JWT non valide', JsonResponse::HTTP_UNAUTHORIZED);
         $event->setResponse($response);
     }
 
-    /**
-     * @param JWTNotFoundEvent $event
-     */
     public function onJWTNotFound(JWTNotFoundEvent $event)
     {
         $data = [
@@ -43,9 +34,6 @@ class LexikJWTErrorsListener
         $event->setResponse($response);
     }
 
-    /**
-     * @param JWTExpiredEvent $event
-     */
     public function onJWTExpired(JWTExpiredEvent $event)
     {
         /** @var JWTAuthenticationFailureResponse */
