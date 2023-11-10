@@ -16,7 +16,7 @@ Simple users can search products and consult each product details.
 -   Git 2.24.0
 
 ### Library used
--   Symfony 5.3.1
+-   Symfony 5.4.30
     -   lexik/jwt-authentication-bundle
     -   zircote/swagger-php
 
@@ -31,7 +31,7 @@ Depending on your operating system, choose your own:
 -   Linux : LAMP (<https://doc.ubuntu-fr.org/lamp>)
 -   Cross system: XAMP (<https://www.apachefriends.org/fr/index.html>)
 
-Symfony 5.3.1 requires PHP 7.2.5 or higher to run.\
+Symfony 5.4.30 requires PHP 7.2.5 or higher to run.\
 Prefer to have MySQL 5.6 or higher.\
 Make sure PHP is in the Path environment variable.
 
