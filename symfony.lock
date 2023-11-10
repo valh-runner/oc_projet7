@@ -104,12 +104,6 @@
     "laminas/laminas-code": {
         "version": "3.4.1"
     },
-    "laminas/laminas-eventmanager": {
-        "version": "3.3.1"
-    },
-    "laminas/laminas-zendframework-bridge": {
-        "version": "1.2.0"
-    },
     "lcobucci/jwt": {
         "version": "3.4.5"
     },
@@ -151,9 +145,6 @@
     },
     "phpdocumentor/type-resolver": {
         "version": "1.4.0"
-    },
-    "phpspec/prophecy": {
-        "version": "1.13.0"
     },
     "phpunit/php-code-coverage": {
         "version": "9.2.6"
