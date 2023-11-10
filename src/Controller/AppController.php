@@ -57,10 +57,9 @@ class AppController extends AbstractController
      *      @OA\Response(response="400", ref="#/components/responses/LoginBadRequest")
      * )
      */
-
     /**
      * Products index
-     * 
+     *
      * @OA\Get(
      *      path="/api/products",
      *      description="Obtain a list of products",
@@ -86,12 +85,7 @@ class AppController extends AbstractController
      *      @OA\Response(response="403", ref="#/components/responses/ProductActionForbidden"),
      *      @OA\Response(response="401", ref="#/components/responses/AccessUnauthorized")
      * )
-     * 
-     * @param Request $request
-     * @param ProductRepository $productRepository
-     * @param BrandRepository $brandRepository
-     * @param ValidatorInterface $validator
-     * @param CacheItemPoolInterface $productPool
+     *
      * @return JsonResponse
      * @Route("/api/products", name="api_product_index", methods={"GET"}, requirements={"page"="\d+"}, stateless=true)
      */
@@ -142,9 +136,7 @@ class AppController extends AbstractController
 
         // available brands content format
         $brands = $brandRepository->findAll();
-        $brandsNames = array_map(function ($value) {
-            return $value->getName();
-        }, $brands);
+        $brandsNames = array_map(fn($value) => $value->getName(), $brands);
 
         // response content build
         $content = [
@@ -173,7 +165,7 @@ class AppController extends AbstractController
 
     /**
      * Product detail
-     * 
+     *
      * @OA\Get(
      *      path="/api/products/{productId}",
      *      description="Obtain the detail of a product",
@@ -191,10 +183,7 @@ class AppController extends AbstractController
      *      @OA\Response(response="403", ref="#/components/responses/ProductActionForbidden"),
      *      @OA\Response(response="401", ref="#/components/responses/AccessUnauthorized")
      * )
-     * 
-     * @param int $productId
-     * @param ProductRepository $productRepository
-     * @param CacheItemPoolInterface $productPool
+     *
      * @return JsonResponse
      * @Route("/api/products/{productId<\d+>}", name="api_product_detail", methods={"GET"}, stateless=true)
      */
@@ -221,8 +210,7 @@ class AppController extends AbstractController
 
     /**
      * Product cache deletion - confidential admin management endpoint used when changes in products
-     * 
-     * @param CacheItemPoolInterface $productPool
+     *
      * @return JsonResponse
      * @Route("/api/products_cache_delete", name="api_product_cache_delete", methods={"DELETE"}, stateless=true)
      */
@@ -235,7 +223,7 @@ class AppController extends AbstractController
 
     /**
      * Users index
-     * 
+     *
      * @OA\Get(
      *      path="/api/users",
      *      description="Obtain the list of owned simple users",
@@ -248,9 +236,7 @@ class AppController extends AbstractController
      *      @OA\Response(response="403", ref="#/components/responses/UserActionForbidden"),
      *      @OA\Response(response="401", ref="#/components/responses/AccessUnauthorized")
      * )
-     * 
-     * @param UserRepository $userRepository
-     * @param CacheInterface $userPool
+     *
      * @return JsonResponse
      * @Route("/api/users", name="api_user_index", methods={"GET"}, stateless=true)
      */
@@ -276,7 +262,7 @@ class AppController extends AbstractController
 
     /**
      * User detail
-     * 
+     *
      * @OA\Get(
      *      path="/api/users/{userId}",
      *      description="Obtain the detail of a user you own",
@@ -294,11 +280,7 @@ class AppController extends AbstractController
      *      @OA\Response(response="403", ref="#/components/responses/UserActionForbidden"),
      *      @OA\Response(response="401", ref="#/components/responses/AccessUnauthorized")
      * )
-     * 
-     * @param int $userId
-     * @param UserRepository $userRepository
-     * @param AuthorizationCheckerInterface $authChecker
-     * @param CacheInterface $userPool
+     *
      * @return JsonResponse
      * @Route("/api/users/{userId<\d+>}", name="api_user_detail", methods={"GET"}, stateless=true)
      */
@@ -326,7 +308,7 @@ class AppController extends AbstractController
 
     /**
      * User creation
-     * 
+     *
      * @OA\Post(
      *      path="/api/users",
      *      description="Create a simple user you own",
@@ -352,14 +334,7 @@ class AppController extends AbstractController
      *      @OA\Response(response="403", ref="#/components/responses/UserCreateForbidden"),
      *      @OA\Response(response="401", ref="#/components/responses/AccessUnauthorized")
      * )
-     * 
-     * @param Request $request
-     * @param UserRepository $userRepository
-     * @param SerializerInterface $serializer
-     * @param EntityManagerInterface $manager
-     * @param UserPasswordHasherInterface $passwordHasher
-     * @param ValidatorInterface $validator
-     * @param CacheInterface $userPool
+     *
      * @return JsonResponse
      * @Route("/api/users", name="api_user_create", methods={"POST"}, stateless=true)
      */
@@ -399,7 +374,7 @@ class AppController extends AbstractController
 
     /**
      * User update
-     * 
+     *
      * @OA\Put(
      *      path="/api/users/{userId}",
      *      description="Update the password of a simple user you own",
@@ -422,14 +397,7 @@ class AppController extends AbstractController
      *      @OA\Response(response="404", ref="#/components/responses/UserNotFound"),
      *      @OA\Response(response="401", ref="#/components/responses/AccessUnauthorized")
      * )
-     * 
-     * @param int $userId
-     * @param Request $request
-     * @param SerializerInterface $serializer
-     * @param UserRepository $userRepository
-     * @param EntityManagerInterface $manager
-     * @param UserPasswordHasherInterface $passwordHasher
-     * @param ValidatorInterface $validator
+     *
      * @return JsonResponse
      * @Route("/api/users/{userId<\d+>}", name="api_user_password_update", methods={"PUT"}, stateless=true)
      */
@@ -470,7 +438,7 @@ class AppController extends AbstractController
 
     /**
      * User deletion
-     * 
+     *
      * @OA\Delete(
      *      path="/api/users/{userId}",
      *      description="Delete a simple user you own",
@@ -485,12 +453,7 @@ class AppController extends AbstractController
      *      @OA\Response(response="404", ref="#/components/responses/UserNotFound"),
      *      @OA\Response(response="401", ref="#/components/responses/AccessUnauthorized")
      * )
-     * 
-     * @param int $userId
-     * @param UserRepository $userRepository
-     * @param EntityManagerInterface $manager
-     * @param AuthorizationCheckerInterface $authChecker
-     * @param CacheInterface $userPool
+     *
      * @return JsonResponse
      * @Route("/api/users/{userId<\d+>}", name="api_user_delete", methods={"DELETE"}, stateless=true)
      */
@@ -519,8 +482,7 @@ class AppController extends AbstractController
 
     /**
      * Respond a description of validation errors
-     * 
-     * @param ConstraintViolationListInterface $violations
+     *
      * @return JsonResponse
      */
     private function validationErrorsResponse(ConstraintViolationListInterface $violations): JsonResponse
@@ -541,9 +503,7 @@ class AppController extends AbstractController
 
     /**
      * Respond a custom description of error
-     * 
-     * @param int $statusCode
-     * @param string $message
+     *
      * @return JsonResponse
      */
     private function errorResponse(int $statusCode, string $message): JsonResponse

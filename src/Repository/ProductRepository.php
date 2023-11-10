@@ -21,10 +21,6 @@ class ProductRepository extends ServiceEntityRepository
 
     /**
      * Returns a portion of Products as a page of pagination, according to a search
-     * @param string $keyword
-     * @param int $order
-     * @param int $limit
-     * @param int $page
      * @return Product[] Array of Product objects
      */
     public function paginatedSearch(string $keyword, string $order, int $limit, int $page)
@@ -47,7 +43,6 @@ class ProductRepository extends ServiceEntityRepository
 
     /**
      * Returns the total number of Products, according to a search
-     * @param String $keyword
      * @return int Number of products
      */
     public function unpaginatedSearchCount(String $keyword)

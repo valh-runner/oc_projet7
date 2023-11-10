@@ -38,17 +38,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      *      message="Le nom d'utilisateur peut comporter des caractères alphanumériques, points, tirets et underscores",
      *      groups={"create"}
      * )
-     * 
-     * @var string
      */
-    private $username;
+    private ?string $username = null;
 
     /**
      * @ORM\Column(type="json")
-     * 
-     * @var array
      */
-    private $roles = [];
+    private array $roles = [];
 
     /**
      * @var string The hashed password
@@ -59,21 +55,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      *      groups={"create", "update"}
      * )
      */
-    private $password;
+    private ?string $password = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="ownedUsers")
-     * 
-     * @var User
      */
-    private $owner;
+    private ?\App\Entity\User $owner = null;
 
     /**
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="owner")
-     * 
-     * @var Collection
      */
-    private $ownedUsers;
+    private \Doctrine\Common\Collections\ArrayCollection|array $ownedUsers;
 
     public function __construct()
     {

@@ -25,106 +25,80 @@ class Product
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"product:index", "product:read"})
-     * 
-     * @var string
      */
-    private $model;
+    private ?string $model = null;
 
     /**
      * @ORM\Column(type="float")
      * @Groups("product:read")
-     * 
-     * @var float
      */
-    private $htPrice;
+    private ?float $htPrice = null;
 
     /**
      * @ORM\Column(type="string", length=4)
      * @Groups("product:read")
-     * 
-     * @var string
      */
-    private $releaseYear;
+    private ?string $releaseYear = null;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
-     * 
-     * @var int
      */
-    private $weight;
+    private ?int $weight = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("product:read")
-     * 
-     * @var string
      */
-    private $plateform;
+    private ?string $plateform = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups("product:read")
-     * 
-     * @var string
      */
-    private $color;
+    private ?string $color = null;
 
     /**
      * @ORM\Column(type="float")
      * @Groups("product:read")
-     * 
-     * @var float
      */
-    private $screenSize;
+    private ?float $screenSize = null;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
-     * 
-     * @var int
      */
-    private $storageSize;
+    private ?int $storageSize = null;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
-     * 
-     * @var int
      */
-    private $ram;
+    private ?int $ram = null;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
-     * 
-     * @var int
      */
-    private $coreNbr;
+    private ?int $coreNbr = null;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
-     * 
-     * @var int
      */
-    private $camMpx;
+    private ?int $camMpx = null;
 
     /**
      * @ORM\Column(type="smallint")
      * @Groups("product:read")
-     * 
-     * @var int
      */
-    private $battery;
+    private ?int $battery = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Brand::class, inversedBy="products")
      * @Groups({"product:index", "product:read"})
-     * 
-     * @var Brand
      */
-    private $brand;
+    private ?\App\Entity\Brand $brand = null;
 
     public function getId(): ?int
     {
