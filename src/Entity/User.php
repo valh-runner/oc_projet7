@@ -65,7 +65,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="owner")
      */
-    private \Doctrine\Common\Collections\ArrayCollection|array $ownedUsers;
+    private \Doctrine\Common\Collections\Collection|array $ownedUsers;
 
     public function __construct()
     {

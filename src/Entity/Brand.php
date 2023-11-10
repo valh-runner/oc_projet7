@@ -32,7 +32,7 @@ class Brand
     /**
      * @ORM\OneToMany(targetEntity=Product::class, mappedBy="brand")
      */
-    private \Doctrine\Common\Collections\ArrayCollection|array $products;
+    private \Doctrine\Common\Collections\Collection|array $products;
 
     public function __construct()
     {
