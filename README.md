@@ -10,7 +10,7 @@ Simple users can search products and consult each product details.
 ### Environment used during development
 -   WampServer 3.1.7
     -   Apache 2.4.37
-    -   PHP 7.3.1
+    -   PHP 8.2.12
     -   MySQL 5.7.24
 -   Composer 2.0.13
 -   Git 2.24.0
@@ -31,8 +31,8 @@ Depending on your operating system, choose your own:
 -   Linux : LAMP (<https://doc.ubuntu-fr.org/lamp>)
 -   Cross system: XAMP (<https://www.apachefriends.org/fr/index.html>)
 
-Symfony 5.4.30 requires PHP 7.2.5 or higher to run.\
-Prefer to have MySQL 5.6 or higher.\
+Symfony 5.4.30 requires at least PHP 7.2.5 but prefer to have version 8.2.0\
+MySQL 5.6 complies however 5.7 is recommended.\
 Make sure PHP is in the Path environment variable.
 
 You need an installation of Composer.\
