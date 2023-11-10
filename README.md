@@ -1,6 +1,6 @@
 # Projet7 - BileMo
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2141b002cf514748a5354b125eca689f)](https://www.codacy.com/gh/valh-runner/oc_projet7/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=valh-runner/oc_projet7&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2141b002cf514748a5354b125eca689f)](https://app.codacy.com/gh/valh-runner/oc_projet7/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 Creation of a RESTful API in order to present smartphones available for sale to business consumers.\
 Implemented via the Symfony framework and secured by Json Web Token.\
