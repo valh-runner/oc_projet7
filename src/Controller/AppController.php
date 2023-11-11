@@ -89,7 +89,7 @@ class AppController extends AbstractController
      * @return JsonResponse
      * @Route("/api/products", name="api_product_index", methods={"GET"}, requirements={"page"="\d+"}, stateless=true)
      */
-    public function productIndex(Request $request, ProductRepository $productRepository, BrandRepository $brandRepository, ValidatorInterface $validator, CacheItemPoolInterface $productPool): JsonResponse
+    public function productIndex(Request $request, CacheItemPoolInterface $productPool): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_USER'); //restrict access to users and admin
 
@@ -97,67 +97,14 @@ class AppController extends AbstractController
         $getParams = [
             'brand' => $request->query->get('brand', 'all'),
             'order' => $request->query->get('order', 'asc'),
-            'page' => $request->query->get('page', '1')
-        ];
-
-        // query params validation
-        $validator = Validation::createValidator();
-        $constraint = new Assert\Collection([
-            'brand' => new Assert\Optional([
-                new Assert\NotBlank(null, 'La valeur ne doit pas être vide'),
-                new Assert\Type('string', 'Chaîne de caratères attendue')
-            ]),
-            'order' => [
-                new Assert\NotBlank(null, 'La valeur ne doit pas être vide'),
-                new Assert\Choice(['choices' => ['asc', 'desc'], 'message' => 'Valeur erronée'])
-            ],
-            'page' => [
-                new Assert\NotBlank(null, 'La valeur ne doit pas être vide'),
-                new Assert\Regex('#^[1-9]\d*$#', 'Nombre entier positif attendu - zéro exclu')
-            ]
-        ]);
-        $violations = $validator->validate($getParams, $constraint);
-        if (count($violations) > 0) {
-            return $this->validationErrorsResponse($violations); //send errors details response
-        }
-        $getParams['page'] = (int) $getParams['page']; //set asked page as int
-
-        // data retrieve
-        $PageItemsLimit = 5;
-        $fullProductsCount = $productRepository->unpaginatedSearchCount($getParams['brand']);
-        $currentProducts = $productRepository->paginatedSearch($getParams['brand'], $getParams['order'], $PageItemsLimit, $getParams['page']);
-        $lastPage = ceil($fullProductsCount / $PageItemsLimit);
-        $currentProductsCount = count($currentProducts);
-
-        //if asked page is out of bound
-        if ($getParams['page'] > $lastPage) {
-            return $this->errorResponse(JsonResponse::HTTP_NOT_FOUND, 'La page n\'existe pas'); // code 404
-        }
-
-        // available brands content format
-        $brands = $brandRepository->findAll();
-        $brandsNames = array_map(fn($value) => $value->getName(), $brands);
-
-        // response content build
-        $content = [
-            'meta' => [
-                'totalPaginatedItems' => $fullProductsCount,
-                'maxItemsPerPage' => $PageItemsLimit,
-                'lastPage' => $lastPage,
-                'currentPage' => $getParams['page'],
-                'currentPageItems' => $currentProductsCount,
-                'availableBrands' => $brandsNames
-            ],
-            'data' => $currentProducts
+            'page' => (int) $request->query->get('page', '1')
         ];
 
         //cache management
         $itemKey = 'product-index-' . $getParams['brand'] . '-' . $getParams['order'] . '-' . $getParams['page'];
         $productIndexItem = $productPool->getItem($itemKey);
         if (!$productIndexItem->isHit()) {
-            $productIndexItem->set(
-                $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'product:index']) // code 200
-            );
+            $productIndexItem->set($this->productIndexProcess($getParams));
             $productPool->save($productIndexItem);
         }
         return $productIndexItem->get();
@@ -497,5 +444,70 @@ class AppController extends AbstractController
             'code' => $statusCode,
             'message' => $message
         ], $statusCode);
+    }
+
+    /**
+     * Main logic of productIndex
+     *
+     * @return JsonResponse
+     */
+    private function productIndexProcess(array $getParams, ProductRepository $productRepository, BrandRepository $brandRepository, ValidatorInterface $validator): JsonResponse
+    {
+        $violations = $this->productIndexValidation($getParams);
+        if (count($violations) > 0) {
+            return $this->validationErrorsResponse($violations); //send errors details response
+        }
+
+        // data retrieve
+        $PageItemsLimit = 5;
+        $fullProductsCount = $productRepository->unpaginatedSearchCount($getParams['brand']);
+        $currentProducts = $productRepository->paginatedSearch($getParams['brand'], $getParams['order'], $PageItemsLimit, $getParams['page']);
+        $lastPage = ceil($fullProductsCount / $PageItemsLimit);
+
+        //if asked page is out of bound
+        if ($getParams['page'] > $lastPage) {
+            return $this->errorResponse(JsonResponse::HTTP_NOT_FOUND, 'La page n\'existe pas'); // code 404
+        }
+
+        // response content build
+        $content = [
+            'meta' => [
+                'totalPaginatedItems' => $fullProductsCount,
+                'maxItemsPerPage' => $PageItemsLimit,
+                'lastPage' => $lastPage,
+                'currentPage' => $getParams['page'],
+                'currentPageItems' => count($currentProducts),
+                'availableBrands' => $brandRepository->getBrandsNames()
+            ],
+            'data' => $currentProducts
+        ];
+
+        return $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'product:index']) // code 200
+    }
+
+    /**
+     * Validation of productIndex query params
+     *
+     * @return ConstraintViolationListInterface
+     */
+    private function productIndexValidation(array $getParams): ConstraintViolationListInterface
+    {
+        // query params validation
+        $validator = Validation::createValidator();
+        $constraint = new Assert\Collection([
+            'brand' => new Assert\Optional([
+                new Assert\NotBlank(null, 'La valeur ne doit pas être vide'),
+                new Assert\Type('string', 'Chaîne de caratères attendue')
+            ]),
+            'order' => [
+                new Assert\NotBlank(null, 'La valeur ne doit pas être vide'),
+                new Assert\Choice(['choices' => ['asc', 'desc'], 'message' => 'Valeur erronée'])
+            ],
+            'page' => [
+                new Assert\NotBlank(null, 'La valeur ne doit pas être vide'),
+                new Assert\Regex('#^[1-9]\d*$#', 'Nombre entier positif attendu - zéro exclu')
+            ]
+        ]);
+        return $validator->validate($getParams, $constraint);
     }
 }
