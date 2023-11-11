@@ -18,6 +18,6 @@ framework:
         pools:
             #my.dedicated.cache: null
             product_pool:
-                default_lifetime: 604800 # expires after one week
+                default_lifetime: 600 # expires after ten minutes
             user_pool:
-                default_lifetime: 604800 # expires after one week
+                default_lifetime: 600 # expires after ten minutes
