@@ -209,19 +209,6 @@ class AppController extends AbstractController
     }
 
     /**
-     * Product cache deletion - confidential admin management endpoint used when changes in products
-     *
-     * @return JsonResponse
-     * @Route("/api/products_cache_delete", name="api_product_cache_delete", methods={"DELETE"}, stateless=true)
-     */
-    public function productCacheDelete(CacheItemPoolInterface $productPool): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN'); //restrict access to admin
-        $productPool->clear(); //delete all cached products index and detail
-        return $this->json(null, JsonResponse::HTTP_NO_CONTENT); // code 204
-    }
-
-    /**
      * Users index
      *
      * @OA\Get(
@@ -255,7 +242,6 @@ class AppController extends AbstractController
 
         //cache management
         return $userPool->get('user-index-' . $customerUser->getId(), function (ItemInterface $item) use ($content) {
-            $item->expiresAfter(604800); // expires after one week
             return $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'user:index']); // code 200
         });
     }
@@ -295,7 +281,6 @@ class AppController extends AbstractController
             if ($user->getOwner() == $this->getUser() || $authChecker->isGranted('ROLE_ADMIN')) {
                 //cache management
                 return $userPool->get('user-detail-' . $user->getId(), function (ItemInterface $item) use ($user) {
-                    $item->expiresAfter(604800); // expires after one week
                     return $this->json($user, JsonResponse::HTTP_OK, [], ['groups' => 'user:index']); // code 200
                 });
             }
