@@ -89,7 +89,7 @@ class AppController extends AbstractController
      * @return JsonResponse
      * @Route("/api/products", name="api_product_index", methods={"GET"}, requirements={"page"="\d+"}, stateless=true)
      */
-    public function productIndex(Request $request, CacheItemPoolInterface $productPool): JsonResponse
+    public function productIndex(Request $request, ProductRepository $productRepository, BrandRepository $brandRepository, ValidatorInterface $validator, CacheItemPoolInterface $productPool): JsonResponse
     {
         $this->denyAccessUnlessGranted('ROLE_USER'); //restrict access to users and admin
 
@@ -104,7 +104,7 @@ class AppController extends AbstractController
         $itemKey = 'product-index-' . $getParams['brand'] . '-' . $getParams['order'] . '-' . $getParams['page'];
         $productIndexItem = $productPool->getItem($itemKey);
         if (!$productIndexItem->isHit()) {
-            $productIndexItem->set($this->productIndexProcess($getParams));
+            $productIndexItem->set($this->productIndexProcess($getParams, $productRepository, $brandRepository, $validator));
             $productPool->save($productIndexItem);
         }
         return $productIndexItem->get();
@@ -482,7 +482,7 @@ class AppController extends AbstractController
             'data' => $currentProducts
         ];
 
-        return $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'product:index']) // code 200
+        return $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'product:index']); // code 200
     }
 
     /**
