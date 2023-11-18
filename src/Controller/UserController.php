@@ -6,7 +6,6 @@ use App\Entity\User;
 use OpenApi\Annotations as OA;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -55,7 +54,7 @@ class UserController extends AbstractController
         ];
 
         //cache management
-        return $userPool->get('user-index-' . $customerUser->getId(), function (ItemInterface $item) use ($content) {
+        return $userPool->get('user-index-' . $customerUser->getId(), function () use ($content) {
             return $this->json($content, JsonResponse::HTTP_OK, [], ['groups' => 'user:index']); // code 200
         });
     }
@@ -94,7 +93,7 @@ class UserController extends AbstractController
             //if customer is the user owner or if admin - admin can display unowned user
             if ($user->getOwner() == $this->getUser() || $authChecker->isGranted('ROLE_ADMIN')) {
                 //cache management
-                return $userPool->get('user-detail-' . $user->getId(), function (ItemInterface $item) use ($user) {
+                return $userPool->get('user-detail-' . $user->getId(), function () use ($user) {
                     return $this->json($user, JsonResponse::HTTP_OK, [], ['groups' => 'user:index']); // code 200
                 });
             }

@@ -95,7 +95,7 @@ class ProductController extends AbstractController
         $itemKey = 'product-index-' . $getParams['brand'] . '-' . $getParams['order'] . '-' . $getParams['page'];
         $productIndexItem = $productPool->getItem($itemKey);
         if (!$productIndexItem->isHit()) {
-            $productIndexItem->set($this->productIndexProcess($getParams, $productRepository, $brandRepository, $validator, $errorResponder));
+            $productIndexItem->set($this->productIndexProcess($getParams, $productRepository, $brandRepository, $errorResponder));
             $productPool->save($productIndexItem);
         }
         return $productIndexItem->get();
@@ -151,7 +151,7 @@ class ProductController extends AbstractController
      *
      * @return JsonResponse
      */
-    private function productIndexProcess(array $getParams, ProductRepository $productRepository, BrandRepository $brandRepository, ValidatorInterface $validator, ErrorResponder $errorResponder): JsonResponse
+    private function productIndexProcess(array $getParams, ProductRepository $productRepository, BrandRepository $brandRepository, ErrorResponder $errorResponder): JsonResponse
     {
         $violations = $this->productIndexValidation($getParams);
         if (count($violations) > 0) {
